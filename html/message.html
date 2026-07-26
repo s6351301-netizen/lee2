@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <title>留言板系統</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333; }
+    h2, h3 { color: #2c3e50; }
+    .form-container, .list-container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    textarea { height: 80px; }
+    button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; overflow-x: auto; display: block; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; white-space: nowrap; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>新增留言</h2>
+    <div class="form-group">
+      <label>帳號：</label>
+      <input type="text" id="account" placeholder="請輸入帳號">
+    </div>
+    <div class="form-group">
+      <label>姓名：</label>
+      <input type="text" id="name" placeholder="請輸入姓名">
+    </div>
+    <div class="form-group">
+      <label>內容：</label>
+      <textarea id="content" placeholder="請輸入留言內容..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>上傳檔案：</label>
+      <input type="file" id="fileInput">
+    </div>
+    <button onclick="submitMessage()" id="submitBtn">送出留言</button>
+  </div>
+
+  <div class="list-container">
+    <h3>留言列表</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>帳號</th>
+          <th>姓名</th>
+          <th>內容</th>
+          <th>時間</th>
+          <th>狀態</th>
+          <th>修改時間</th>
+          <th>檔案連結</th>
+          <th>檔名</th>
+          <th>檔案上傳時間</th>
+        </tr>
+      </thead>
+      <tbody id="messageTableBody">
+        <tr><td colspan="10" style="text-align:center;">載入中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // 您的正式部署網址
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyAU4m22SnzVNLC5I3rt7kzqHnlUjNpaJ-WpcESZ1wGd974oIZxHfmU4qBMwgzxUnFd/exec";
+
+    window.onload = function() {
+      loadMessages();
+    };
+
+    // 讀取留言列表
+    function loadMessages() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(renderTable)
+          .withFailureHandler(function(err) { console.error("讀取失敗：", err); })
+          .getMessages();
+      } else {
+        // 如果在外部測試，透過 JSONP 或 GET 讀取
+        fetch(WEB_APP_URL + "?action=get")
+          .then(res => res.json())
+          .then(data => renderTable(data))
+          .catch(err => {
+            console.error("API 讀取錯誤：", err);
+            document.getElementById('messageTableBody').innerHTML = '<tr><td colspan="10" style="text-align:center; color:red;">請透過 Google 官方部署網址開啟此頁面以正常同步！</td></tr>';
+          });
+      }
+    }
+
+    function renderTable(data) {
+      var tbody = document.getElementById('messageTableBody');
+      tbody.innerHTML = '';
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">目前沒有留言</td></tr>';
+        return;
+      }
+
+      data.forEach(function(row) {
+        var fileLink = row["檔案連結"] ? `<a href="${row["檔案連結"]}" target="_blank">${row["檔名"] || '下載檔案'}</a>` : '無';
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row["ID"] || ''}</td>
+          <td>${row["帳號"] || ''}</td>
+          <td>${row["姓名"] || ''}</td>
+          <td>${row["內容"] || ''}</td>
+          <td>${row["時間"] || ''}</td>
+          <td>${row["狀態"] || ''}</td>
+          <td>${row["修改時間"] || ''}</td>
+          <td>${fileLink}</td>
+          <td>${row["檔名"] || ''}</td>
+          <td>${row["檔案上傳時間"] || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 點擊送出按鈕
+    function submitMessage() {
+      var account = document.getElementById('account').value.trim();
+      var name = document.getElementById('name').value.trim();
+      var content = document.getElementById('content').value.trim();
+      var fileInput = document.getElementById('fileInput');
+
+      if (!account || !name || !content) {
+        alert('請填寫帳號、姓名與內容！');
+        return;
+      }
+
+      var submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = '處理中...';
+
+      var formData = {
+        account: account,
+        name: name,
+        content: content
+      };
+
+      if (fileInput.files.length > 0) {
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          formData.file = {
+            bytes: Array.from(new Uint8Array(e.target.result)),
+            type: file.type,
+            name: file.name
+          };
+          sendToServer(formData);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        sendToServer(formData);
+      }
+    }
+
+    // 傳送資料至後端
+    function sendToServer(formData) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            resetButton();
+            if (res && res.success) {
+              alert('留言成功！');
+              document.getElementById('account').value = '';
+              document.getElementById('name').value = '';
+              document.getElementById('content').value = '';
+              document.getElementById('fileInput').value = '';
+              loadMessages();
+            }
+          })
+          .withFailureHandler(function(err) {
+            resetButton();
+            alert('發生錯誤：' + err.message);
+          })
+          .addMessage(formData);
+      } else {
+        // 如果是從外部（如本機）呼叫，使用隱藏表單提交繞過跨域限制
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = WEB_APP_URL;
+        form.target = '_blank'; // 開新視窗送出或配合隱藏iframe
+
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'payload';
+        input.value = JSON.stringify(formData);
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        setTimeout(function() {
+          resetButton();
+          alert('資料已送出！請重新整理試算表確認。');
+          document.getElementById('account').value = '';
+          document.getElementById('name').value = '';
+          document.getElementById('content').value = '';
+          loadMessages();
+        }, 1500);
+      }
+    }
+
+    function resetButton() {
+      var submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = false;
+      submitBtn.innerText = '送出留言';
+    }
+  </script>
+</body>
+</html>
