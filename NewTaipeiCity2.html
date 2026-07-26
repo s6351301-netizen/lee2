@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新北市泰山職訓打卡地圖-寶可夢</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            overflow: hidden;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        /* 右上角動態資訊面板 */
+        .info-panel {
+            padding: 12px 15px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            border-left: 5px solid #1a73e8;
+            min-width: 200px;
+        }
+        .info-panel h4 { margin: 0 0 5px 0; color: #333; font-size: 16px; }
+        .info-panel p { margin: 3px 0; color: #666; }
+        .highlight { color: #e81123; font-weight: bold; font-size: 18px; }
+        
+        /* 底部操作控制區 */
+        #action-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        /* 手機鏡頭畫面遮罩層 - 完全乾淨 */
+        #camera-view {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 2000;
+        }
+        #video {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        
+        /* 滿版核對觀景窗 */
+        #comparison-frame {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+        .frame-blind {
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 16px;
+        }
+        .center-row {
+            display: flex;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        .side-blind {
+            background: rgba(0, 0, 0, 0.75);
+            width: 10%;
+        }
+        /* 實景比對窗 */
+        .clear-window {
+            border: 4px solid #ffeb3b;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); 
+            flex-grow: 1;
+            border-radius: 12px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden; /* 確保位移後的圖片超出範圍會被裁切，保持畫面乾淨 */
+        }
+        /* 🎯 已修改：透過 transform 將半透明對照圖片往右上角移動 250px */
+        .clear-window::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('icon/NewTaipeiCity.png') no-repeat center;
+            background-size: contain;
+            opacity: 0.35;    
+        }
+        
+        /* 下方操作提示台 */
+        .ar-control-panel {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 340px;
+            text-align: center;
+            z-index: 2100;
+        }
+        .ar-tip-text {
+            color: #00FF00;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 8px #000;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .capture-btn {
+            background-color: #ff3b30;
+            color: white;
+            border: 2px solid white;
+            padding: 14px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            width: 100%;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: rgba(255,255,255,0.8);
+            border: none; padding: 8px 16px; border-radius: 5px;
+            font-size: 14px; font-weight: bold; z-index: 2200;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="action-container">
+        <button id="ar-btn" class="btn" disabled onclick="openCameraWithComparison()">距離太遠（GPS 鎖定中）</button>
+    </div>
+
+    <div id="camera-view">
+        <video id="video" autoplay playsinline></video>
+        
+        <div id="comparison-frame">
+            <div class="frame-blind">📷 實景照片核對模式</div>
+            <div class="center-row">
+                <div class="side-blind"></div>
+                <div class="clear-window"></div>
+                <div class="side-blind"></div>
+            </div>
+            <div class="frame-blind" style="padding-bottom:120px;">⚠️ 畫面外觀若與照片不符則不計分</div>
+        </div>
+        
+        <div class="ar-control-panel">
+            <div class="ar-tip-text">
+                🧩 請將手機移動，讓現場樹木景物<br>完美契合畫面右上方的輪廓照片！
+            </div>
+            <button class="capture-btn" onclick="verifyAndScore()">[ 📸 拍照確認：確認外型無誤 ]</button>
+        </div>
+        <button class="close-btn" onclick="closeCamera()">關閉鏡頭</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. 設定目標點：泰山職訓中心精準經緯度
+        const targetSpot = {
+            name: "泰山職訓中心",
+            lat: 25.0435125, 
+            lng: 121.4192113,
+            score: 0,
+            hasScored: false
+        };
+
+        // 2. 初始化電子地圖
+        const map = L.map('map').setView([targetSpot.lat, targetSpot.lng], 16);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 3. 在地圖上設定標記與「放寬為 80 公尺」得分圈
+        const targetMarker = L.marker([targetSpot.lat, targetSpot.lng]).addTo(map)
+            .bindPopup(`<b>${targetSpot.name}</b><br>寶可夢據點`).openPopup();
+
+        const detectionCircle = L.circle([targetSpot.lat, targetSpot.lng], {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.1,
+            radius: 80 // 🎯 已修改：放寬為 80 公尺打卡半徑
+        }).addTo(map);
+
+        let userMarker = null;
+
+        // 4. 右上角狀態面板
+        const info = L.control({ position: 'topright' });
+        info.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info-panel');
+            this.update(null, "GPS 定位中...");
+            return this._div;
+        };
+        info.update = function (distance, scoreText) {
+            let distStr = distance !== null ? `${distance.toFixed(1)} 公尺` : "未知";
+            this._div.innerHTML = `
+                <h4>訓練家打卡系統</h4>
+                <p>目前得分：<span class="highlight" style="color:green;">${targetSpot.score} 分</span></p>
+                <p>目標景點：<b>${targetSpot.name}</b></p>
+                <p>與目標距離：<span class="highlight">${distStr}</span></p>
+                <p>狀態：${scoreText}</p>
+            `;
+        };
+        info.addTo(map);
+
+        // 5. 計算經緯度距離 (公尺)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // 6. 監聽手機實時 GPS
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(function(position) {
+                const uLat = position.coords.latitude;
+                const uLng = position.coords.longitude;
+
+                if (!userMarker) {
+                    userMarker = L.circleMarker([uLat, uLng], { radius: 8, color: '#1a73e8', fillColor: '#1a73e8', fillOpacity: 1 }).addTo(map);
+                } else {
+                    userMarker.setLatLng([uLat, uLng]);
+                }
+
+                const distance = getDistance(uLat, uLng, targetSpot.lat, targetSpot.lng);
+                const arBtn = document.getElementById('ar-btn');
+
+                // 🎯 判定：放寬為小於等於 80 公尺
+                if (distance <= 80) {
+                    if (!targetSpot.hasScored) {
+                        info.update(distance, "<span style='color:green; font-weight:bold;'>已進入 80 米打卡區！請啟動鏡頭。</span>");
+                        arBtn.disabled = false;
+                        arBtn.style.backgroundColor = "#4CAF50";
+                        arBtn.innerText = "⚡ 進入 80 米範圍：開啟鏡頭核對";
+                    } else {
+                        info.update(distance, "此據點已完成打卡。");
+                        arBtn.disabled = true;
+                        arBtn.style.backgroundColor = "#cccccc";
+                        arBtn.innerText = "已完成打卡";
+                    }
+                } else {
+                    info.update(distance, "未進入 80 米範圍 (請繼續靠近)");
+                    arBtn.disabled = true;
+                    arBtn.style.backgroundColor = "#cccccc";
+                    arBtn.innerText = "距離太遠（GPS 鎖定中）";
+                }
+
+            }, function(error) {
+                console.error(error);
+                info.update(null, "<span style='color:red;'>請開啟手機高精度 GPS 權限</span>");
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 1000,
+                timeout: 5000
+            });
+        }
+
+        // 7. AR 手機鏡頭控制邏輯
+        const video = document.getElementById('video');
+        const cameraView = document.getElementById('camera-view');
+
+        function openCameraWithComparison() {
+            cameraView.style.display = 'block';
+            
+            alert("【⚠️ 畫面核對提示】\n\n您已抵達現場！接下來請打開鏡頭。\n系統已將景點的目標照片半透明疊加在相機畫面上。\n請將手機移動到特定角度，讓真實樹木景物完美的「嵌進」照片的輪廓對齊框中。若外型不一樣則無法計分！");
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function(err) {
+                    alert("無法啟動相機鏡頭。請確認網址為 HTTPS 安全連線，並已允許瀏覽器開啟相機。");
+                    console.error(err);
+                    closeCamera();
+                });
+        }
+
+        // 8. 📸 拍照按鈕功能：驗證 80 公尺防線
+        function verifyAndScore() {
+            if (targetSpot.hasScored) {
+                alert("此景點已得分，無法重複打卡！");
+                closeCamera();
+                return;
+            }
+
+            // 驗證防線：確認按下確認鈕時，GPS 依然在 80 公尺範圍核心圈內。
+            const currentLatLng = userMarker ? userMarker.getLatLng() : {lat: 0, lng: 0};
+            const currentDist = getDistance(currentLatLng.lat, currentLatLng.lng, targetSpot.lat, targetSpot.lng);
+
+            if (currentDist <= 80) {
+                const userConfirm = confirm("【拍照確認】\n請再次核對：現場樹木的「外型輪廓」是否與畫面上半透明的指定照片完全一模一樣？\n\n（若人工抽驗發現外型不符，將取消得分資格）");
+                
+                if (userConfirm) {
+                    targetSpot.score += 100;
+                    targetSpot.hasScored = true;
+                    
+                    alert("🌟 SUCCESS！🌟\n【80公尺 GPS 驗證：通過】\n【實景照片核對：確認一致】\n恭喜獲得寶可夢積分：+100 分！");
+                    closeCamera();
+                    
+                    info.update(currentDist, "<span style='color:gold; font-weight:bold;'>🎉 任務完成！順利得分。</span>");
+                } else {
+                    alert("【外型核對失敗】\n請將樹木景物精準對齊照片中的對焦框，才能順利得分喔！");
+                }
+            } else {
+                alert("❌ 打卡失敗！\n您已離開 80 公尺範圍，或者實景樹木外型與目標不符，無法得分！");
+                closeCamera();
+            }
+        }
+
+        function closeCamera() {
+            cameraView.style.display = 'none';
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+        }
+    </script>
+</body>
+</html>

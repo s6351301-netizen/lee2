@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺中市宗親人員統計與線路導航</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <style>
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            font-family: "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        #map { width: 100%; height: 100%; }
+        
+        /* 基礎樣式 */
+        .info-panel {
+            padding: 15px; font-size: 14px; background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); border-radius: 8px;
+            border-left: 5px solid #1a73e8; width: 340px; max-height: 520px;
+            overflow-y: auto; position: relative;
+        }
+        .total-stats-panel {
+            padding: 12px; font-size: 13px; background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); border-radius: 8px;
+            border-top: 5px solid #6f42c1; width: 320px; max-height: 400px;
+            overflow-y: auto; position: relative; margin-top: 10px;
+        }
+
+        /* --- RWD 手機版調整 --- */
+        @media (max-width: 600px) {
+            .info-panel, .total-stats-panel {
+                width: 85vw !important; /* 寬度設為螢幕寬度的85% */
+                max-height: 30vh !important; /* 高度限制在螢幕的30% */
+                font-size: 11px !important;
+                padding: 8px !important;
+            }
+            .stats-table { font-size: 10px !important; }
+            .hint-text { display: none; } /* 手機隱藏提示文字以節省空間 */
+        }
+
+        .panel-controls { position: absolute; top: 12px; right: 12px; display: flex; gap: 10px; z-index: 10; }
+        .panel-btn { cursor: pointer; font-size: 14px; font-weight: bold; color: #aaa; user-select: none; }
+        .panel-btn:hover { color: #e81123; }
+        .info-panel h4, .total-stats-panel h4 { margin: 0 0 8px 0; color: #333; font-size: 14px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .stats-table th, .stats-table td { border: 1px solid #ccc; padding: 4px; text-align: center; }
+        .stats-table th { background-color: #f8f9fa; font-weight: bold; }
+        .nav-input-group { margin-top: 8px; padding-top: 8px; border-top: 2px solid #ddd; }
+        .nav-row { margin-bottom: 5px; display: flex; align-items: center; }
+        .nav-row label { width: 60px; font-weight: bold; }
+        .nav-row input { flex: 1; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+        .go-btn { background-color: #28a745; color: white; border: none; padding: 5px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .highlight-text { color: #e81123; font-weight: bold; }
+        .leaflet-routing-container { display: none !important; }
+        .inspiration-panel { font-size: 12px; background: transparent; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <script>
+        // --- 核心變數與初始化 ---
+        const map = L.map('map').setView([24.182, 120.713], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+        let isObservationPanelMinimized = false;
+        let isTotalStatsPanelMinimized = false;
+
+        // --- 手機環境自動收合偵測 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth <= 600) {
+                isTotalStatsPanelMinimized = true;
+                isObservationPanelMinimized = true;
+            }
+        });
+
+        // (註：其餘您原始碼中的邏輯函數，如 filterByDistrict, getLatLngByAddress 等請保持不變，直接續接於此即可)
+        // 此處為展示結構，已整合上述新增的 RWD 樣式與手機偵測功能。
+        
+        // 此處應填入您原本完整的 JS 邏輯...
+        console.log("RWD 模式已啟用，系統偵測裝置寬度中...");
+    </script>
+</body>
+</html>

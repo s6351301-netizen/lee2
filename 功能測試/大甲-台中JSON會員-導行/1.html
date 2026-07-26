@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺中市行政區地圖 - 宗親居住地統計與導航</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 右上角整合動態資訊面板 */
+        .info-panel {
+            padding: 15px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            border-left: 5px solid #1a73e8;
+            width: 340px;
+            max-height: 520px;
+            overflow-y: auto;
+        }
+        .info-panel h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 16px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .info-panel p {
+            margin: 0 0 8px 0;
+            color: #666;
+        }
+        .highlight-text {
+            color: #e81123;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* 統一表格與名單樣式 */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #ccc;
+            padding: 5px;
+            text-align: center;
+        }
+        .stats-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .name-list-section {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #bbb;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .gender-title {
+            font-weight: bold;
+            color: #333;
+            margin: 4px 0;
+        }
+        .male-color { color: #0056b3; }
+        .female-color { color: #b21f1f; }
+        .name-string {
+            color: #555;
+            word-break: break-all;
+        }
+
+        /* 名單中的姓名樣式 */
+        .clickable-name {
+            color: #1a73e8;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-right: 5px;
+            display: inline-block;
+        }
+        .clickable-name:hover {
+            color: #0d47a1;
+            font-weight: bold;
+        }
+
+        /* 新增：導航輸入框與按鈕樣式區 */
+        .nav-input-group {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 2px solid #ddd;
+            font-size: 13px;
+        }
+        .nav-row {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-row label {
+            width: 75px;
+            font-weight: bold;
+            color: #444;
+        }
+        .nav-row input {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .nav-btn-container {
+            text-align: right;
+            margin-top: 5px;
+        }
+        .go-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 18px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .go-btn:hover {
+            background-color: #218838;
+        }
+
+        /* 左上角：總體與各區總統計表 */
+        .total-stats-panel {
+            padding: 12px;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-top: 5px solid #6f42c1;
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            position: relative;
+            margin-top: 10px;
+        }
+        .total-stats-panel h4 {
+            margin: 0 0 8px 0;
+            color: #222;
+            font-size: 14px;
+            text-align: center;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            padding-right: 20px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 14px;
+            font-weight: bold;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+        .close-btn:hover {
+            color: #e81123;
+        }
+        .sub-title {
+            font-weight: bold;
+            margin: 10px 0 5px 0;
+            color: #555;
+            font-size: 12px;
+        }
+        
+        /* 隱藏所有導航說明的文字、面板與載具選擇區 */
+        .leaflet-routing-container, 
+        .leaflet-routing-error,
+        .leaflet-routing-alt {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <script>
+        const twd97 = "+proj=tmerc +lat_0=0 +lon_0=121 +k=0.9999 +x_0=250000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+        const wgs84 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";
+
+        const taichungDistricts = [
+            "中區", "東區", "南區", "西區", "北區", "北屯區", "西屯區", "南屯區",
+            "太平區", "大里區", "霧峰區", "烏日區", "豐原區", "後里區", "石岡區",
+            "東勢區", "新社區", "潭子區", "大雅區", "神岡區", "大肚區", "沙鹿區",
+            "龍井區", "梧棲區", "清水區", "大甲區", "外埔區", "大安區", "和平區"
+        ];
+
+        const map = L.map('map').setView([24.182, 120.713], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        let geojsonLayer;
+        let taichungPeopleData = []; 
+        let routingControl = null;   
+        
+        // 全域變數：記錄當前點擊選中的宗親資料，供「前往」按鈕提取作起點
+        let lastClickedPerson = { name: "", address: "" }; 
+
+        function filterByDistrict(peopleList, districtName) {
+            return peopleList.filter(p => {
+                if (!p.address) return false;
+                if (districtName === "集中區" || districtName === "中區") {
+                    return p.address.includes("中區") || p.address.includes("台中市中") || p.address.includes("臺中市中");
+                } else {
+                    const shortName = districtName.replace('區', '');
+                    return p.address.includes(shortName);
+                }
+            });
+        }
+
+        function defaultStyle(feature) {
+            return {
+                fillColor: '#3a7bd5',  
+                weight: 2,             
+                opacity: 1,            
+                color: '#ffffff',      
+                fillOpacity: 0.35      
+            };
+        }
+
+        function highlightFeature(e) {
+            const layer = e.target;
+            layer.setStyle({
+                fillColor: '#48d1cc',   
+                weight: 4,              
+                color: '#4a4a4a',       
+                fillOpacity: 0.2        
+            });
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+        }
+
+        function resetHighlight(e) {
+            geojsonLayer.resetStyle(e.target);
+        }
+
+        function onFeatureClick(e) {
+            map.fitBounds(e.target.getBounds());
+            info.update(e.target.feature.properties, e.target.feature._geoIndex);
+        }
+
+        function getDistrictName(props, geoIndex) {
+            if (geoIndex === 25) return "梧棲區";
+            if (geoIndex === 27) return "臺中國際機場";
+            if (!props) return "未知行政區";
+            return props.區名 || props.TOWNNAME || "未知區域";
+        }
+
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: onFeatureClick
+            });
+
+            const districtName = getDistrictName(feature.properties, feature._geoIndex);
+            layer.bindPopup(`<strong style="font-size:14px;">${districtName}</strong>`);
+        }
+
+        // 右上角整合型資訊面板
+        const info = L.control({ position: 'topright' });
+        info.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info-panel');
+            this.update();
+            return this._div;
+        };
+        info.update = function (props, geoIndex) {
+            const districtName = props || geoIndex !== undefined ? getDistrictName(props, geoIndex) : null;
+            
+            if (!districtName || districtName === "臺中國際機場" || districtName === "未知區域") {
+                this._div.innerHTML = `
+                    <h4>臺中市行政區觀測</h4>
+                    <p style="margin:5px 0 0 0; color:#e81123; font-weight:bold;">請「點擊」地圖各行政區查看並鎖定宗親名單</p>
+                `;
+                return;
+            }
+
+            const distPeople = filterByDistrict(taichungPeopleData, districtName);
+            const males = distPeople.filter(p => p.gender === '男' || p.gender === '男性');
+            const females = distPeople.filter(p => p.gender === '女' || p.gender === '女性');
+            
+            const generateNameLinks = (peopleArray) => {
+                if (peopleArray.length === 0) return '無';
+                return peopleArray.map(p => {
+                    const safeAddr = p.address.replace(/'/g, "\\'");
+                    const safeName = p.name.replace(/'/g, "\\'");
+                    // 點擊人名時，同時記錄最後被點擊的人，並執行導航
+                    return `<span class="clickable-name" onclick="lastClickedPerson={name:'${safeName}', address:'${safeAddr}'}; planRouteFromInputToPerson('${safeAddr}', '${safeName}')">${p.name}</span>`;
+                }).join('，');
+            };
+
+            const maleNamesHtml = generateNameLinks(males);
+            const femaleNamesHtml = generateNameLinks(females);
+
+            this._div.innerHTML = `
+                <h4>臺中市行政區觀測</h4>
+                <p>目前鎖定：<span class="highlight-text">${districtName}</span></p>
+                <p style="font-size:12px; color:#1a73e8; margin-top:-5px;">💡 提示：點擊藍色人名，將從下方「來源地址」導航至他家</p>
+                
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>男性</th>
+                            <th>女性</th>
+                            <th>合計</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${males.length} 人</td>
+                            <td>${females.length} 人</td>
+                            <td style="font-weight:bold; color:#e81123;">${distPeople.length} 人</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="name-list-section">
+                    <div class="gender-title male-color">👨 男性名單 (${males.length}人)：</div>
+                    <div class="name-string">${maleNamesHtml}</div>
+                </div>
+                <div class="name-list-section">
+                    <div class="gender-title female-color">👩 女性名單 (${females.length}人)：</div>
+                    <div class="name-string">${femaleNamesHtml}</div>
+                </div>
+
+                <div class="nav-input-group">
+                    <div class="nav-row">
+                        <label>來源地址：</label>
+                        <input type="text" id="srcLocation" value="李武略宗祠">
+                    </div>
+                    <div class="nav-row">
+                        <label>目標景點：</label>
+                        <input type="text" id="targetLocation" placeholder="例如：台中火車站">
+                    </div>
+                    <div class="nav-btn-container">
+                        <button class="go-btn" onclick="planRouteFromPersonToTarget()">前往</button>
+                    </div>
+                </div>
+            `;
+            
+            L.DomEvent.disableClickPropagation(this._div);
+            L.DomEvent.disableScrollPropagation(this._div);
+        };
+        info.addTo(map);
+
+        // 左上角總統計面板
+        const totalStatsPanel = L.control({ position: 'topleft' });
+        totalStatsPanel.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'total-stats-panel');
+            this._div.id = 'total-stats-window';
+            this.update();
+            return this._div;
+        };
+        totalStatsPanel.update = function () {
+            if (taichungPeopleData.length === 0) {
+                this._div.innerHTML = `<h4>台中市宗親總統計表</h4><p style="text-align:center;">資料載入中...</p>`;
+                return;
+            }
+
+            const totalMales = taichungPeopleData.filter(p => p.gender === '男' || p.gender === '男性').length;
+            const totalFemales = taichungPeopleData.filter(p => p.gender === '女' || p.gender === '女性').length;
+            const totalCount = taichungPeopleData.length;
+
+            let districtRowsHtml = '';
+            taichungDistricts.forEach(dist => {
+                const distPeople = filterByDistrict(taichungPeopleData, dist);
+                const dMales = distPeople.filter(p => p.gender === '男' || p.gender === '男性').length;
+                const dFemales = distPeople.filter(p => p.gender === '女' || p.gender === '女性').length;
+                const dTotal = distPeople.length;
+                const percentage = totalCount > 0 ? ((dTotal / totalCount) * 100).toFixed(2) : "0.00";
+                
+                districtRowsHtml += `
+                    <tr>
+                        <td style="font-weight:bold; background-color:#fdfdfd;">${dist}</td>
+                        <td>${dMales}</td>
+                        <td>${dFemales}</td>
+                        <td style="font-weight:bold; color:#e81123;">${dTotal}</td>
+                        <td style="color:#28a745; font-weight:500;">${percentage}%</td>
+                    </tr>
+                `;
+            });
+
+            this._div.innerHTML = `
+                <span class="close-btn" onclick="document.getElementById('total-stats-window').style.display='none'">❌</span>
+                <h4>台中市宗親總統計表</h4>
+                
+                <div class="sub-title">📊 全市總計人數</div>
+                <table class="stats-table" style="font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th>總男性</th>
+                            <th>總女性</th>
+                            <th>台中總計</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${totalMales} 人</td>
+                            <td>${totalFemales} 人</td>
+                            <td style="font-weight:bold; color:#6f42c1;">${totalCount} 人</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="sub-title">🏘️ 各行政區人口一覽</div>
+                <table class="stats-table" style="font-size: 11px; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background-color:#eef2f7;">
+                            <th>行政區</th>
+                            <th>男</th>
+                            <th>女</th>
+                            <th>總計</th>
+                            <th>比例</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${districtRowsHtml}
+                    </tbody>
+                </table>
+            `;
+            
+            L.DomEvent.disableClickPropagation(this._div);
+            L.DomEvent.disableScrollPropagation(this._div);
+        };
+        totalStatsPanel.addTo(map);
+
+        // 核心地址解析工具（支援二階段遞減搜尋與特定點死資料）
+        function getLatLngByAddress(address, callback) {
+            // 處理死資料：若輸入是預設的「李武略宗祠」，直接回傳指定 GPS 座標
+            if (address.trim() === "李武略宗祠") {
+                callback(24.33774, 120.61888);
+                return;
+            }
+
+            function fetchAddress(searchAddr, isRetry = false) {
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchAddr)}&limit=1`;
+                fetch(geocodeUrl)
+                    .then(res => res.json())
+                    .then(geoResult => {
+                        if (geoResult.length === 0 && !isRetry) {
+                            const fuzzyAddress = searchAddr.replace(/\d+([號樓-].*)?$/, '');
+                            fetchAddress(fuzzyAddress, true);
+                            return;
+                        }
+                        if (geoResult.length === 0) {
+                            alert(`無法解析地址或景點位置：${address}`);
+                            return;
+                        }
+                        callback(parseFloat(geoResult[0].lat), parseFloat(geoResult[0].lon));
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert(`解析地址出錯：${err.message}`);
+                    });
+            }
+            fetchAddress(address);
+        }
+
+        // 畫出完全模擬地圖線條外貌的純淨路線
+        function drawCleanRoute(startLat, startLng, endLat, endLng) {
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+            routingControl = L.Routing.control({
+                waypoints: [L.latLng(startLat, startLng), L.latLng(endLat, endLng)],
+                addWaypoints: false,
+                fitSelectedRoutes: true,
+                createMarker: function() { return null; }, // 沒大頭針與箭頭
+                lineStyle: {
+                    styles: [{ color: '#e81123', opacity: 0.8, weight: 4 }] // 仿照界線外觀
+                }
+            }).addTo(map);
+
+            map.setView([(startLat + endLat) / 2, (startLng + endLng) / 2], 12);
+        }
+
+        // 功能 1：點擊名字時，從【來源地址框】導航到【被點擊人的家】
+        function planRouteFromInputToPerson(personAddress, personName) {
+            const srcInput = document.getElementById("srcLocation").value;
+            if (!srcInput) {
+                alert("請填寫來源地址！");
+                return;
+            }
+            
+            getLatLngByAddress(srcInput, function(srcLat, srcLng) {
+                getLatLngByAddress(personAddress, function(destLat, destLng) {
+                    drawCleanRoute(srcLat, srcLng, destLat, destLng);
+                });
+            });
+        }
+
+        // 功能 2：點擊「前往」按鈕時，從【被點擊人的家】導航到【目標景點框】
+        function planRouteFromPersonToTarget() {
+            if (!lastClickedPerson.address) {
+                alert("請先在名單中點擊任一宗親的名字作為出發起點！");
+                return;
+            }
+            const targetInput = document.getElementById("targetLocation").value;
+            if (!targetInput) {
+                alert("請輸入目標景點名稱（例如：台中火車站）！");
+                return;
+            }
+
+            getLatLngByAddress(lastClickedPerson.address, function(srcLat, srcLng) {
+                getLatLngByAddress(targetInput, function(destLat, destLng) {
+                    drawCleanRoute(srcLat, srcLng, destLat, destLng);
+                });
+            });
+        }
+
+        // TWD97 轉 WGS84
+        function convertCoords(coords, type) {
+            if (type === "Point") {
+                return proj4(twd97, wgs84, coords);
+            } else if (type === "LineString" || type === "MultiPoint") {
+                return coords.map(p => proj4(twd97, wgs84, p));
+            } else if (type === "Polygon" || type === "MultiLineString") {
+                return coords.map(ring => ring.map(p => proj4(twd97, wgs84, p)));
+            } else if (type === "MultiPolygon") {
+                return coords.map(poly => poly.map(ring => ring.map(p => proj4(twd97, wgs84, p))));
+            }
+            return coords;
+        }
+
+        const jsonUrl = 'https://s6351301-netizen.github.io/lee/json/TaichungCityBoundary_TWD97-1.json';
+        const dataUrl = 'https://s6351301-netizen.github.io/lee/json/data2.json';
+
+        fetch(dataUrl)
+            .then(res => res.json())
+            .then(database => {
+                taichungPeopleData = database.filter(item => {
+                    const addr = item.address || "";
+                    return addr.includes("台中") || addr.includes("臺中");
+                }).map(item => {
+                    return {
+                        name: item.name || "未知",
+                        gender: item.gender || "男",
+                        address: item.address || ""
+                    };
+                });
+                
+                totalStatsPanel.update();
+                return fetch(jsonUrl);
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('無法讀取網址圖資');
+                }
+                return response.json();
+            })
+            .then(data => {
+                data.features.forEach((feature, index) => {
+                    feature._geoIndex = index;
+
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        feature.geometry.coordinates = convertCoords(feature.geometry.coordinates, feature.geometry.type);
+                    }
+                    
+                    if (index === 25 && turf.getType(feature)) {
+                        if(!feature.properties) feature.properties = {};
+                        feature.properties.區名 = "梧棲區";
+                    }
+                    if (index === 27 && turf.getType(feature)) {
+                        if(!feature.properties) feature.properties = {};
+                        feature.properties.區名 = "臺中國際機場";
+                    }
+                });
+
+                geojsonLayer = L.geoJSON(data, {
+                    style: defaultStyle,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+
+            })
+            .catch(error => {
+                console.error('資料初始化失敗：', error);
+                alert('載入資料失敗，請確認網路連線是否正常。');
+            });
+    </script>
+</body>
+</html>
