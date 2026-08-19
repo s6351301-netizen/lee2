@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>“泉州与台湾关系史学术讨论会”综述</title>
+    <style>
+        :root {
+            --bg-color: #f4ecdf;
+            --container-bg: #fcf8f2;
+            --text-color: #2c221e;
+            --accent-color: #8b3a2b;
+            --accent-gold: #c29b38;
+            --border-color: #d3c2a9;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "Noto Serif TC", "Songti TC", "SimSun", serif;
+            line-height: 1.8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 40px auto;
+            background: var(--container-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 40px 50px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px dashed var(--border-color);
+            pointer-events: none;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .meta {
+            font-size: 0.9rem;
+            color: #6c584c;
+        }
+
+        /* 輪播區塊樣式 */
+        .slideshow-container {
+            position: relative;
+            max-width: 100%;
+            height: 480px;
+            margin: 30px 0 15px 0;
+            border: 1px solid var(--border-color);
+            background: #222;
+            overflow: hidden;
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        /* 點擊圖片開新視窗放大 */
+        .slide a.zoom-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            cursor: zoom-in;
+        }
+
+        .slide img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* 右上角下載按鈕 */
+        .download-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(44, 34, 30, 0.75);
+            color: #fff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            z-index: 10;
+            transition: background 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .download-btn:hover {
+            background: var(--accent-color);
+        }
+
+        .download-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 0;
+            background: rgba(44, 34, 30, 0.85);
+            color: #fcf8f2;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            box-sizing: border-box;
+            padding-right: 50px; /* 避免文字蓋到下載按鈕 */
+        }
+
+        /* 輪播指示點 */
+        .dot-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .dot {
+            cursor: pointer;
+            height: 12px;
+            width: 12px;
+            margin: 0 4px;
+            background-color: var(--border-color);
+            border-radius: 50%;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        .dot.active, .dot:hover {
+            background-color: var(--accent-color);
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+            border-left: 4px solid var(--accent-gold);
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            text-indent: 2em;
+            margin-bottom: 1.2em;
+            text-align: justify;
+        }
+
+        .intro-lead {
+            font-weight: bold;
+            color: #3d2f2b;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: #7a685c;
+        }
+
+        a.source-link {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a.source-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>“泉州与台湾关系史学术讨论会”综述</h1>
+        <div class="meta">发布日期：2016-08-16 ｜ 作者：廖渊泉（泉州历史研究会会员，泉州第一中学历史科教员）</div>
+    </header>
+
+    <!-- 圖片輪播區塊（內含下載按鈕與原始大小開新視窗功能） -->
+    <div class="slideshow-container">
+        <!-- 圖片一 -->
+        <div class="slide active">
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470073049.jpg" target="_blank" class="zoom-link" title="點擊檢視原始大小圖片">
+                <img src="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470073049.jpg" alt="泉州与台湾关系史学术讨论会文件頁面一">
+            </a>
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470073049.jpg" download class="download-btn" title="下載此圖片">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </a>
+            <div class="slide-caption">“泉州与台湾关系史学术讨论会”综述档案文件（一）</div>
+        </div>
+
+        <!-- 圖片二 -->
+        <div class="slide">
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470224969.jpg" target="_blank" class="zoom-link" title="點擊檢視原始大小圖片">
+                <img src="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470224969.jpg" alt="泉州与台湾关系史学术讨论会文件頁面二">
+            </a>
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470224969.jpg" download class="download-btn" title="下載此圖片">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </a>
+            <div class="slide-caption">“泉州与台湾关系史学术讨论会”综述档案文件（二）</div>
+        </div>
+
+        <!-- 圖片三 -->
+        <div class="slide">
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470381279.jpg" target="_blank" class="zoom-link" title="點擊檢視原始大小圖片">
+                <img src="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470381279.jpg" alt="泉州与台湾关系史学术討論会文件頁面三">
+            </a>
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470381279.jpg" download class="download-btn" title="下載此圖片">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </a>
+            <div class="slide-caption">“泉州与台湾关系史学术讨论会”综述档案文件（三）</div>
+        </div>
+
+        <!-- 圖片四 -->
+        <div class="slide">
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470537930.jpg" target="_blank" class="zoom-link" title="點擊檢視原始大小圖片">
+                <img src="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470537930.jpg" alt="泉州与台湾关系史学术討論会文件頁面四">
+            </a>
+            <a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/P020160816382470537930.jpg" download class="download-btn" title="下載此圖片">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </a>
+            <div class="slide-caption">“泉州与台湾关系史学术讨论会”综述档案文件（四）</div>
+        </div>
+    </div>
+
+    <!-- 輪播指示點 -->
+    <div class="dot-container">
+        <span class="dot active" onclick="currentSlideIndex(0)"></span>
+        <span class="dot" onclick="currentSlideIndex(1)"></span>
+        <span class="dot" onclick="currentSlideIndex(2)"></span>
+        <span class="dot" onclick="currentSlideIndex(3)"></span>
+    </div>
+
+    <!-- 文章主體內容 -->
+    <p class="intro-lead">
+        泉州是台湾同胞的祖家之一，两地人民有着密切的关系。为探索泉州与台湾关系史，促进祖国早日统一，泉州历史研究会于一九八五年八月二十五日至二十七日在泉州举行“泉州与台湾关系史学术讨论会”。
+    </p>
+    <p>
+        参加这次讨论会的有：市有关领导，对台工作部门代表，省内史学家，社科研究人员，大专院校教授、讲师和中学历史教师，有关学术团体、戏曲音乐研究单位、财贸经济单位、新闻出版单位代表，回大陆定居的台湾同胞等一百多人。大会收到关于泉州与台湾关系史的论文和资料五十多篇，内容丰富，由古及今，从“地缘”、“血缘”、“人缘”、“物缘”、“文缘”、“神缘”等许多方面，深入阐述泉州与台湾的历史关系。现将讨论的主要内容综述如下：
+    </p>
+
+    <h2>一、“地缘”方面</h2>
+    <p>
+        泉州与台湾一水之隔，“地缘”关系密切。宋元以来，台湾先后为泉州府和福建省管辖的一个行政区域。远古时代台湾与祖国大陆相连，迟至秦汉大陆人民已东渡台湾，三国孙吴和隋朝时几次派船队到台湾。
+    </p>
+    <p>
+        关于中国政府何时有效管辖澎湖，多数人认为南宋乾道年间，泉州知府汪大猷“置民立戍澎湖”，是中国政府最早管辖澎湖的开始。明清以还，经过郑成功的收复、施琅的平定和三次移民高潮，台湾对泉州的行政隶属关系更加紧密。
+    </p>
+
+    <h2>二、“血缘”方面</h2>
+    <p>
+        台湾同胞除高山族外，绝大部分是来自闽粤的移民，尤以泉州府籍为多。南宋初年已有德化城关苏姓族人移居台湾。明清之际，为抗清驱荷及冲破清政府不准携眷渡台禁令，出现三次移民高潮，泉人举族聚居台湾者约占全台人口百分之四十五。
+    </p>
+    <p>
+        台胞不忘桑梓，经常还乡谒祖、修建宗祠、编纂族谱。日本侵占及国民党统治期间，许多泉籍台胞也陆续返乡寻根认祖或定居，证明血缘割不断，祖国统一势在必然。
+    </p>
+
+    <h2>三、“人缘”方面</h2>
+    <p>
+        台湾的收复、建设和回归，与泉属历史人物的关系密切。讨论会重点评价了郑氏家族的历史功过，认为郑成功驱逐荷兰侵略者、收复国土、开发建设台湾，功绩最大，是伟大的爱国主义者和民族英雄。
+    </p>
+    <p>
+        同时，对于施琅专征台湾、妥善处理郑氏集团、完成祖国统一的巨大功绩也给予了一致肯定，说明个人意志必须顺应历史发展大势。
+    </p>
+
+    <h2>四、“物缘”方面</h2>
+    <p>
+        台湾的社会经济主要是在移居的泉漳人民和高山族同胞辛勤劳动下共同开发起来的。康雍乾嘉时期出现三次大规模移民高潮，泉州人民把大陆先进农业技术传入台湾，使农业和水利建设飞跃发展。
+    </p>
+    <p>
+        此外，宋代至现代的泉台通商贸易历史绵延不绝，清代乾隆年间更开放台湾鹿港与泉州蚶江对渡，证明两地在商业经济上的密切联系。
+    </p>
+
+    <h2>五、“文缘”方面</h2>
+    <p>
+        台湾的文化教育是明清以后通过陈永华和移居台湾的泉州文人传播发展起来的。论文介绍了清代泉州籍台湾进士、惠安籍举人及方志、方言、童谣在台流传等情况，充分证明台湾文化就是大陆文化。
+    </p>
+
+    <h2>六、“神缘”方面</h2>
+    <p>
+        台湾居民中泉州籍移民较多，将祖家的风俗习惯与宗教信仰带到台湾。台湾宗教呈儒道佛混合的多神杂教特点，普遍崇拜的神祇包括妈祖、保生大帝、清水祖师等。这些宗教信仰成为两岸同胞互相联系的精神纽带，能增进同胞的血肉情谊。
+    </p>
+
+    <footer>
+        文章来源參考：<a href="https://www.mnwhstq.com/szzy/qzwszlqwk/201608/t20160816_101615.htm?utm_source=copilot.com" target="_blank" class="source-link">闽南文化生态保护区 - 泉州文史资料全文库</a>
+    </footer>
+</div>
+
+<script>
+    // 圖片輪播與互動控制邏輯
+    let slideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    let slideInterval;
+
+    function showSlide(n) {
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        slideIndex = (n + slides.length) % slides.length;
+        
+        slides[slideIndex].classList.add('active');
+        dots[slideIndex].classList.add('active');
+    }
+
+    function nextSlide() {
+        showSlide(slideIndex + 1);
+    }
+
+    function currentSlideIndex(n) {
+        showSlide(n);
+        resetInterval();
+    }
+
+    function resetInterval() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, 5000);
+    }
+
+    // 初始化自動播放（每5秒切換）
+    slideInterval = setInterval(nextSlide, 5000);
+</script>
+
+</body>
+</html>
