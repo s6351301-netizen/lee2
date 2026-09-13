@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精緻互動式電子書</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- 引入 Turn.js 翻頁特效 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+        }
+        /* 電子書容器設定，確保隱藏超出範圍的動畫 */
+        #book {
+            width: 800px;
+            height: 500px;
+        }
+        #book .page {
+            background-color: #ffffff;
+            color: #334155;
+            padding: 40px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+        .hard {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+        /* 強化 Turn.js 翻頁時的陰影與立體感 */
+        .turn-page {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- 頁面標題 -->
+    <header class="text-center mb-6">
+        <h1 class="text-3xl font-bold text-slate-800 tracking-wide">大自然生態探索</h1>
+        <p class="text-sm text-slate-600 mt-1">沉浸式翻頁電子書體驗</p>
+    </header>
+
+    <!-- 主體區塊：電子書與右側控制列並排 -->
+    <div class="flex items-center gap-6">
+        <!-- 電子書外框 -->
+        <div id="book">
+            <!-- 第 1 頁：封面 -->
+            <div class="hard flex flex-col items-center justify-center text-center p-8">
+                <span class="text-xs uppercase tracking-widest text-indigo-400 mb-2">Interactive E-Book</span>
+                <h2 class="text-3xl font-bold mb-3">探索大自然之美</h2>
+                <p class="text-slate-400 text-sm">翻開書頁，展開一段視覺與心靈的奇幻旅程</p>
+                <div class="mt-12 text-xs text-slate-500">提示：可使用滑鼠拖曳書角翻頁</div>
+            </div>
+
+            <!-- 第 2 頁：封面背面 -->
+            <div class="hard flex items-center justify-center text-slate-400">
+                <p class="italic">目錄與序言</p>
+            </div>
+
+            <!-- 第 3 頁：內頁 1 -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-600 mb-2">01. 壯麗的高山景致</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        高山是大自然最雄偉的雕塑。清晨曙光灑落山峰，雲海翻滾，平靜與震撼交織，是洗滌心靈的最佳去處。
+                    </p>
+                </div>
+                <div class="my-2">
+                    <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80" alt="高山風景" class="rounded-lg shadow w-full h-44 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-100">
+                    <span>自然風光系列</span>
+                    <span>1 / 4 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 4 頁：內頁 2 -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-600 mb-2">02. 寧靜的森林祕境</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        走入茂密森林，陽光透過樹冠灑下金光，空氣中滿是芬多精。聆聽鳥鳴與微風沙沙聲，找回內心平靜。
+                    </p>
+                </div>
+                <div class="my-2">
+                    <img src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80" alt="森林風景" class="rounded-lg shadow w-full h-44 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-100">
+                    <span>自然風光系列</span>
+                    <span>2 / 4 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 5 頁：內頁 3 -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-600 mb-2">03. 蔚藍的海岸風光</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        無邊無際的海洋讓人心胸開闊。海浪拍打礁石激起浪花，傍晚夕陽將海面染成金黃與橘紅，美不勝收。
+                    </p>
+                </div>
+                <div class="my-2">
+                    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80" alt="海岸風景" class="rounded-lg shadow w-full h-44 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-100">
+                    <span>自然風光系列</span>
+                    <span>3 / 4 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 6 頁：內頁 4 -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-600 mb-2">04. 結語與展望</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        大自然是我們最珍貴的寶藏。透過文字與影像，我們將美景記錄下來，並提醒彼此珍惜與守護地球。
+                    </p>
+                </div>
+                <div class="my-2 text-center text-slate-500 font-semibold text-sm py-6">
+                    感謝您的閱讀！
+                </div>
+                <div class="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-100">
+                    <span>自然風光系列</span>
+                    <span>4 / 4 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 7 頁：封底背面 -->
+            <div class="hard flex items-center justify-center text-slate-400">
+                <p class="italic">版權所有</p>
+            </div>
+
+            <!-- 第 8 頁：封底 -->
+            <div class="hard flex flex-col items-center justify-center text-center p-8">
+                <h2 class="text-2xl font-bold mb-2">The End</h2>
+                <p class="text-xs text-slate-400">Copyright &copy; 2026</p>
+            </div>
+        </div>
+
+        <!-- 右側上下控制按鈕與頁碼狀態 -->
+        <div class="flex flex-col gap-3">
+            <button id="prevBtn" class="flex items-center justify-center w-12 h-12 bg-white text-slate-700 rounded-full shadow-md hover:bg-indigo-600 hover:text-white transition duration-200 focus:outline-none" title="上一頁">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+            </button>
+            <div id="pageIndicator" class="text-center text-xs font-semibold text-slate-600 bg-white/80 backdrop-blur px-2 py-2 rounded-lg shadow-sm">
+                1 / 8
+            </div>
+            <button id="nextBtn" class="flex items-center justify-center w-12 h-12 bg-white text-slate-700 rounded-full shadow-md hover:bg-indigo-600 hover:text-white transition duration-200 focus:outline-none" title="下一頁">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 初始化與功能優化 JS -->
+    <script>
+        $(document).ready(function() {
+            const $book = $('#book');
+
+            // 初始化 Turn.js，明確啟用強烈漸層與陰影，並確保雙頁對齊
+            $book.turn({
+                width: 800,
+                height: 500,
+                autoCenter: true,
+                gradients: true,     // 開啟翻頁陰影漸層，讓翻頁立體感更明顯
+                elevation: 100,      // 增加翻頁時紙張浮起的立體高度
+                when: {
+                    turned: function(e, page) {
+                        $('#pageIndicator').text(page + ' / ' + $book.turn('pages'));
+                    }
+                }
+            });
+
+            // 初始化設定總頁數
+            $('#pageIndicator').text($book.turn('view', 1).join('-') + ' / ' + $book.turn('pages'));
+
+            // 上一頁按鈕（確保一次翻一整頁/雙頁展開）
+            $('#prevBtn').click(function(e) {
+                e.preventDefault();
+                $book.turn('previous');
+            });
+
+            // 下一頁按鈕（確保一次翻一整頁/雙頁展開）
+            $('#nextBtn').click(function(e) {
+                e.preventDefault();
+                $book.turn('next');
+            });
+
+            // 支援鍵盤左右方向鍵控制
+            $(document).keydown(function(e) {
+                if (e.keyCode == 37) { 
+                    $book.turn('previous');
+                } else if (e.keyCode == 39) { 
+                    $book.turn('next');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
