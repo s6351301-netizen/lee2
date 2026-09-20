@@ -4,452 +4,581 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>李氏家族數位族譜</title>
+    <!-- 引入思源宋體（Noto Serif TC）確保優質典雅古籍字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- 引入 jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- 引入 Turn.js 翻頁特效 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
     <style>
         body {
-            background-color: #1e293b;
+            background-color: #0b0f19;
+            background-image: radial-gradient(circle at center, #111827 0%, #030712 100%);
             font-family: "Noto Serif TC", "Songti TC", serif;
-            overflow: hidden;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
         }
-        /* 設定單頁為橫式 A4 大小：1123 × 794 px */
+
+        /* 護眼模式 / 傳統宣紙模式全域變數 */
+        body.sepia-mode {
+            background-color: #f4ebd0 !important;
+            background-image: radial-gradient(circle at center, #fbf6eb 0%, #ede3c3 100%) !important;
+            color: #2c221e !important;
+        }
+        body.sepia-mode header {
+            background-color: rgba(237, 227, 195, 0.95) !important;
+            border-color: #d4c5a9 !important;
+            color: #2c221e !important;
+        }
+        body.sepia-mode select, body.sepia-mode input {
+            background-color: #fdfbf7 !important;
+            color: #2c221e !important;
+            border-color: #d4c5a9 !important;
+        }
+        body.sepia-mode #pageIndicator {
+            background-color: rgba(237, 227, 195, 0.9) !important;
+            color: #2c221e !important;
+            border-color: #d4c5a9 !important;
+        }
+        body.sepia-mode .fixed-sidebar-title h1 {
+            color: #4a3b32 !important;
+        }
+
+        /* 設定單頁尺寸 */
         #book {
             width: 1024px;
-            height: 594px;
+            height: 494px;
         }
         #book .page {
-            background-color: #fdfbf7;
-            color: #2c2c2c;
-            padding: 10px;
-            box-shadow: inset 0 0 40px rgba(139, 69, 19, 0.1);
-            border: 1px solid #e2d9c5;
+            background-color: #faf6ee;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.06) 0%, rgba(255,255,255,0) 6%), 
+                              radial-gradient(circle at center, #faf6ee 0%, #f3ecd9 100%);
+            color: #2b231d;
+            padding: 12px;
+            box-shadow: inset 0 0 60px rgba(139, 115, 85, 0.12), 0 0 15px rgba(0,0,0,0.25);
+            border: 1px solid #d4c5a9;
+        }
+        
+        /* 護眼模式下的書本內頁微調 */
+        body.sepia-mode #book .page {
+            background-color: #fcf8ee;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.04) 0%, rgba(255,255,255,0) 6%), 
+                              radial-gradient(circle at center, #fcf8ee 0%, #f4ebd0 100%);
+            color: #2c221e;
+            border: 1px solid #c9b999;
+        }
+
+        /* 古典深藍封面專屬樣式 */
+        .page-cover {
+            background-color: #0f172a !important;
+            background-image: linear-gradient(135deg, #1e293b 0%, #090d16 100%) !important;
+            color: #e0f2fe !important;
+            border: 4px double #3b82f6 !important;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.7) !important;
+        }
+        body.sepia-mode .page-cover {
+            background-color: #3b2f2f !important;
+            background-image: linear-gradient(135deg, #4a3b32 0%, #221a17 100%) !important;
+            color: #f4ebd0 !important;
+            border: 4px double #d4c5a9 !important;
+        }
+
+        /* 直式文字樣式：直式書寫 */
+        .vertical-title {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 0.2em;
+        }
+
+        /* 手機響應式容器調整 */
+        @media (max-width: 1080px) {
+            #book {
+                width: 100% !important;
+                max-width: 480px !important;
+                height: 720px !important;
+            }
+            .fixed-sidebar-title {
+                display: none !important;
+            }
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center justify-between min-h-screen p-2 md:p-4">
 
-    <!-- 頁面標題 -->
-    <header class="text-center mb-3">
-        <h1 class="text-2xl font-bold text-amber-100 tracking-wider">隴西李氏家族數位族譜</h1>
-        <p class="text-xs text-amber-300 mt-1">典雅傳承 ‧ 昭穆有序</p>
+    <!-- 頂部功能導航列 -->
+    <header class="w-full max-w-6xl flex flex-wrap justify-between items-center bg-slate-950/80 backdrop-blur border border-blue-900/60 rounded-xl px-4 py-2.5 mb-2 shadow-lg z-30 gap-2">
+        <div class="flex items-center gap-2">
+            <span class="text-blue-100 font-bold tracking-wider text-sm md:text-base">📜 李氏家族數位族譜</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- 快速導航目錄選單 -->
+            <select id="tocSelect" class="bg-slate-900/90 text-blue-100 text-xs md:text-sm border border-blue-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="1">📖 快速導航目錄...</option>
+                <option value="1">第 1 頁：總序封面</option>
+                <option value="2">第 2 頁：溯源與血脈延續</option>
+                <option value="7">第 7 頁：第二大項：續修序</option>
+                <option value="11">第 11 頁：第三大項：凡例</option>
+                <option value="13">第 13 頁：一至五世世系表</option>
+                <option value="14">第 14 頁：六至十世世系表</option>
+                <option value="15">第 15 頁：家族分支與分流圖解</option>
+                <option value="22">第 22 頁：全書封底</option>
+            </select>
+
+            <!-- 頁碼輸入框 -->
+            <div class="flex items-center">
+                <input type="number" id="goToPageInput" min="1" max="22" placeholder="頁碼" class="bg-slate-950/90 text-blue-100 placeholder-blue-300/50 text-xs md:text-sm border border-blue-800 rounded-l-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 w-16 text-center">
+                <button id="goToPageBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 text-xs md:text-sm px-2.5 py-1.5 rounded-r-lg border border-l-0 border-blue-800 transition duration-200">跳頁</button>
+            </div>
+
+            <!-- 全文檢索輸入框 -->
+            <div class="flex items-center">
+                <input type="text" id="searchInput" placeholder="搜尋全書任何文字..." class="bg-slate-950/90 text-blue-100 placeholder-blue-300/50 text-xs md:text-sm border border-blue-800 rounded-l-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 md:w-36">
+                <button id="searchBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 text-xs md:text-sm px-3 py-1.5 rounded-r-lg border border-l-0 border-blue-800 transition duration-200">搜尋</button>
+            </div>
+
+            <!-- 縮圖目錄按鈕 -->
+            <button id="openThumbModalBtn" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-100 text-xs md:text-sm px-3 py-1.5 rounded-lg border border-indigo-700 transition duration-200 flex items-center gap-1 cursor-pointer" title="全書縮圖目錄">
+                <span>🖼️ 目錄檢視</span>
+            </button>
+
+            <!-- 書籤與筆記按鈕 -->
+            <button id="openNotesModalBtn" class="bg-amber-900 hover:bg-amber-800 text-amber-100 text-xs md:text-sm px-3 py-1.5 rounded-lg border border-amber-700 transition duration-200 flex items-center gap-1 cursor-pointer" title="書籤與筆記">
+                <span>🔖 書籤筆記</span>
+            </button>
+
+            <!-- 暗黑/護眼模式切換 -->
+            <button id="toggleThemeBtn" class="bg-slate-800 hover:bg-slate-700 text-yellow-200 text-xs md:text-sm px-3 py-1.5 rounded-lg border border-slate-700 transition duration-200 cursor-pointer" title="切換護眼模式">
+                <span>💡 護眼模式</span>
+            </button>
+        </div>
     </header>
 
+    <!-- 左側直式固定標題與副標題 -->
+    <div class="fixed-sidebar-title fixed top-1/2 -translate-y-1/2 flex flex-col items-start z-20 pointer-events-none select-none" style="right: calc(50% + 512px + 40px);">
+        <h1 class="text-xl font-bold text-blue-100/90 vertical-title drop-shadow-md">
+            隴西李氏家族數位族譜<br>典雅傳承 ‧ 昭穆有序
+        </h1>
+    </div>
+
     <!-- 主體區塊：電子書與右側控制列並排 -->
-    <div class="flex items-center gap-6">
+    <div class="flex flex-col lg:flex-row items-center justify-center gap-4 w-full flex-grow">
         <!-- 電子書外框 -->
-        <div id="book">
+        <div id="book" class="shadow-2xl rounded-sm">
             <!-- 第 1 頁：封面 -->
-            <div class="page flex flex-col justify-between">
-                <div class="flex flex-col items-center justify-center text-center flex-grow">
-                    <span class="text-sm tracking-widest text-amber-800 mb-3 font-semibold">【 第一大項：序 】</span>
-                    <h2 class="text-4xl font-bold mb-4 tracking-widest text-amber-900">李氏族譜・總序</h2>
-                    <p class="text-stone-600 text-base max-w-2xl leading-relaxed">
+            <div class="page page-cover flex flex-col justify-between" data-page-num="1">
+                <div class="flex flex-col items-center justify-center text-center flex-grow p-4">
+                    <span class="text-xs md:text-sm tracking-widest text-blue-300 mb-3 font-semibold border-b border-blue-600/60 pb-1">【 隴 西 堂 】</span>
+                    <h2 class="text-3xl md:text-5xl font-bold mb-4 tracking-widest text-blue-100 drop-shadow">李氏族譜・總序</h2>
+                    <p class="text-blue-200/90 text-sm md:text-base max-w-xl leading-relaxed mt-2">
                         國之有史，地之有志，家之有譜。譜牒所以昭穆代遠、維繫宗親。吾族自遠祖源遠流長，瓜瓞綿綿，世代簪纓，耕讀傳家。
                     </p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm text-blue-300/80 pt-3 border-t border-blue-700/60">
                     <span>李氏族譜卷一</span>
                     <span>第 1 頁</span>
                 </div>
             </div>
 
-            <!-- 第 2 頁：序言內文 (圖文兼併 1) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 2 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="2">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">01. 溯源與血脈延續</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">01. 溯源與血脈延續</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         水有源而木有本，人有祖而宗有譜。本族世代繁衍，分支遍及海內外。追根溯源，皆為同宗共祖。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80" alt="古籍族譜" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80" alt="古籍族譜" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>序言篇章</span>
                     <span>第 2 頁</span>
                 </div>
             </div>
 
-            <!-- 第 3 頁：序言內文 (圖文兼併 2) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 3 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="3">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">02. 祖先發祥聖地</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">02. 祖先發祥聖地</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         先祖肇基之所，山川靈秀，鐘靈毓秀。歷代先賢於此耕耘播遷，奠定家族百年基業。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80" alt="祖居山川" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80" alt="祖居山川" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>序言篇章</span>
                     <span>第 3 頁</span>
                 </div>
             </div>
 
-            <!-- 第 4 頁：序言內文 (純文字 1) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 4 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="4">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">03. 宗族精神與祖訓</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">03. 宗族精神與祖訓</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         忠孝立身，仁義處世。祖訓言：「讀書好營生好，簡樸最真；忠信存心，和平待物。」此乃子孫立世之本。
                     </p>
-                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                    <p class="text-sm md:text-base leading-relaxed mt-3 md:mt-4">
                         歷代先賢克勤克儉，勉勵後進不忘根本，尊老愛幼，敦親睦鄰，為本族世代相傳之美德。
                     </p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>序言篇章</span>
                     <span>第 4 頁</span>
                 </div>
             </div>
 
-            <!-- 第 5 頁：序言內文 (圖文兼併 3) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 5 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="5">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">04. 書香門第與文風</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">04. 書香門第與文風</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         家族崇尚耕讀，歷朝歷代多有文人墨客與學子登科及第，為地方文教之發展做出卓越貢獻。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=900&q=80" alt="古籍書房" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=900&q=80" alt="古籍書房" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>序言篇章</span>
                     <span>第 5 頁</span>
                 </div>
             </div>
 
-            <!-- 第 6 頁：序言內文 (純文字 2) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 6 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="6">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">05. 宗祠興建與凝聚</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">05. 宗祠興建與凝聚</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         宗祠乃凝聚族人之核心，春秋二祭，慎終追遠。祠堂雕樑畫棟，昭示祖宗功德與家族榮光。
                     </p>
-                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                    <p class="text-sm md:text-base leading-relaxed mt-3 md:mt-4">
                         每逢祭祖大典，海內外宗親齊聚一堂，頂禮膜拜，共叙血脈深情，體現強大之宗族向心力。
                     </p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>序言篇章</span>
                     <span>第 6 頁</span>
                 </div>
             </div>
 
-            <!-- 第 7 頁：第二大項：續修序 -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 7 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="7">
                 <div>
-                    <span class="text-sm tracking-widest text-amber-800 mb-3 font-semibold block">【 第二大項：續修序 】</span>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">01. 歷代續修源流</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <span class="text-xs md:text-sm tracking-widest mb-2 md:mb-3 font-semibold block">【 第二大項：續修序 】</span>
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">01. 歷代續修源流</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         盛世修志，家之有譜亦然。歲月更迭，若不定期續修，恐生支派失考之虞。本族自初修以來，歷經多次續修。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=900&q=80" alt="檔案修復" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=900&q=80" alt="檔案修復" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>續修序篇章</span>
                     <span>第 7 頁</span>
                 </div>
             </div>
 
-            <!-- 第 8 頁：續修序內文 (純文字 3) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 8 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="8">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">02. 本次續修緣起</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">02. 本次續修緣起</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         自上次修譜至今已逾三十載，新添丁口眾多，遷徙頻繁。為免世代湮沒，經族人倡議，特成立續修族譜委員會。
                     </p>
-                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                    <p class="text-sm md:text-base leading-relaxed mt-3 md:mt-4">
                         委員會廣搜資料，登門走訪各房各派，歷時數載，終於告成，可謂盛事。
                     </p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>續修序篇章</span>
                     <span>第 8 頁</span>
                 </div>
             </div>
 
-            <!-- 第 9 頁：續修序內文 (圖文兼併 4) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 9 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="9">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">03. 走訪與資料蒐集</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">03. 走訪與資料蒐集</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         修譜小組足跡遍及大江南北，核對碑文、翻閱舊契，力求世系清晰、人名無誤。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&w=900&q=80" alt="田野調查" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&w=900&q=80" alt="田野調查" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>續修序篇章</span>
                     <span>第 9 頁</span>
                 </div>
             </div>
 
-            <!-- 第 10 頁：續修序內文 (純文字 4) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 10 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="10">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">04. 數位化與新編排</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">04. 數位化與新編排</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         為適應現代化發展，本次續修特別採用數位網頁版與紙本並行，便於全球宗親隨時查閱與聯繫。
                     </p>
-                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                    <p class="text-sm md:text-base leading-relaxed mt-3 md:mt-4">
                         此舉突破地域限制，讓年輕一代更能便捷地了解家族歷史與輩分排行。
                     </p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>續修序篇章</span>
                     <span>第 10 頁</span>
                 </div>
             </div>
 
-            <!-- 第 11 頁：第三大項：凡例 -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 11 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="11">
                 <div>
-                    <span class="text-sm tracking-widest text-amber-800 mb-3 font-semibold block">【 第三大項：凡例 】</span>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">01. 編修體例說明</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <span class="text-xs md:text-sm tracking-widest mb-2 md:mb-3 font-semibold block">【 第三大項：凡例 】</span>
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">01. 編修體例說明</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         一、本譜採用歐式與蘇式結合之體例，世系井然，尊卑有序。
                         <br>二、人名記載以本名為主，字號、生卒年及配偶均詳載於後。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80" alt="規章圖表" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80" alt="規章圖表" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>凡例篇章</span>
                     <span>第 11 頁</span>
                 </div>
             </div>
 
-            <!-- 第 12 頁：凡例內文 (純文字 5) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 12 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="12">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">02. 輩分字輩對照</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">02. 輩分字輩對照</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         三、家族字輩排序：「克、家、振、業、孝、友、傳、家、永、昌」。取名依此序，以免亂倫序。
                     </p>
-                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                    <p class="text-sm md:text-base leading-relaxed mt-3 md:mt-4">
                         四、女性族員記載：本次續修亦將女性宗親及其夫婿、子女一併登載，體現平等人權與完整血脈。
                     </p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>凡例篇章</span>
                     <span>第 12 頁</span>
                 </div>
             </div>
 
-            <!-- 第 13 頁：第四大項：世系表 (表格 1) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 13 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="13">
                 <div>
-                    <span class="text-sm tracking-widest text-amber-800 mb-2 font-semibold block">【 第四大項：世系表 】</span>
-                    <h3 class="text-xl font-bold text-amber-900 mb-2">01. 一至五世世系表</h3>
-                    <table class="w-full text-left border-collapse text-sm mt-2">
+                    <span class="text-xs md:text-sm tracking-widest mb-2 font-semibold block">【 第四大項：世系表 】</span>
+                    <h3 class="text-lg md:text-xl font-bold mb-2">01. 一至五世世系表</h3>
+                    <table class="w-full text-left border-collapse text-xs md:text-sm mt-1">
                         <thead>
-                            <tr class="bg-amber-100 text-amber-900">
-                                <th class="p-2 border border-amber-300">世代</th>
-                                <th class="p-2 border border-amber-300">姓名</th>
-                                <th class="p-2 border border-amber-300">字號</th>
-                                <th class="p-2 border border-amber-300">配偶</th>
-                                <th class="p-2 border border-amber-300">備註</th>
+                            <tr class="bg-current/10 font-bold">
+                                <th class="p-1.5 md:p-2 border border-current/30">世代</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">姓名</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">字號</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">配偶</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">備註</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td class="p-2 border border-amber-200">一世</td><td class="p-2 border border-amber-200">李元鼎</td><td class="p-2 border border-amber-200">宗之</td><td class="p-2 border border-amber-200">王氏</td><td class="p-2 border border-amber-200">始祖</td></tr>
-                            <tr><td class="p-2 border border-amber-200">二世</td><td class="p-2 border border-amber-200">李克明</td><td class="p-2 border border-amber-200">顯甫</td><td class="p-2 border border-amber-200">張氏</td><td class="p-2 border border-amber-200">長子</td></tr>
-                            <tr><td class="p-2 border border-amber-200">三世</td><td class="p-2 border border-amber-200">李家邦</td><td class="p-2 border border-amber-200">國華</td><td class="p-2 border border-amber-200">陳氏</td><td class="p-2 border border-amber-200">進士</td></tr>
-                            <tr><td class="p-2 border border-amber-200">四世</td><td class="p-2 border border-amber-200">李振聲</td><td class="p-2 border border-amber-200">振遠</td><td class="p-2 border border-amber-200">林氏</td><td class="p-2 border border-amber-200">商賈</td></tr>
-                            <tr><td class="p-2 border border-amber-200">五世</td><td class="p-2 border border-amber-200">李業勤</td><td class="p-2 border border-amber-200">克勤</td><td class="p-2 border border-amber-200">黃氏</td><td class="p-2 border border-amber-200">鄉賢</td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">一世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李元鼎</td><td class="p-1.5 md:p-2 border border-current/20">宗之</td><td class="p-1.5 md:p-2 border border-current/20">王氏</td><td class="p-1.5 md:p-2 border border-current/20">始祖</td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">二世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李克明</td><td class="p-1.5 md:p-2 border border-current/20">顯甫</td><td class="p-1.5 md:p-2 border border-current/20">張氏</td><td class="p-1.5 md:p-2 border border-current/20">長子</td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">三世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李家邦</td><td class="p-1.5 md:p-2 border border-current/20">國華</td><td class="p-1.5 md:p-2 border border-current/20">陳氏</td><td class="p-1.5 md:p-2 border border-current/20">進士</td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">四世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李振聲</td><td class="p-1.5 md:p-2 border border-current/20">振遠</td><td class="p-1.5 md:p-2 border border-current/20">林氏</td><td class="p-1.5 md:p-2 border border-current/20">商賈</td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">五世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李業勤</td><td class="p-1.5 md:p-2 border border-current/20">克勤</td><td class="p-1.5 md:p-2 border border-current/20">黃氏</td><td class="p-1.5 md:p-2 border border-current/20">鄉賢</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-2 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 13 頁</span>
                 </div>
             </div>
 
-            <!-- 第 14 頁：世系表 (表格 2) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 14 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="14">
                 <div>
-                    <h3 class="text-xl font-bold text-amber-900 mb-2">02. 六至十世世系表</h3>
-                    <table class="w-full text-left border-collapse text-sm mt-2">
+                    <h3 class="text-lg md:text-xl font-bold mb-2">02. 六至十世世系表</h3>
+                    <table class="w-full text-left border-collapse text-xs md:text-sm mt-1">
                         <thead>
-                            <tr class="bg-amber-100 text-amber-900">
-                                <th class="p-2 border border-amber-300">世代</th>
-                                <th class="p-2 border border-amber-300">姓名</th>
-                                <th class="p-2 border border-amber-300">字號</th>
-                                <th class="p-2 border border-amber-300">配偶</th>
-                                <th class="p-2 border border-amber-300">備註</th>
+                            <tr class="bg-current/10 font-bold">
+                                <th class="p-1.5 md:p-2 border border-current/30">世代</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">姓名</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">字號</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">配偶</th>
+                                <th class="p-1.5 md:p-2 border border-current/30">備註</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td class="p-2 border border-amber-200">六世</td><td class="p-2 border border-amber-200">李孝忠</td><td class="p-2 border border-amber-200">信臣</td><td class="p-2 border border-amber-200">趙氏</td><td class="p-2 border border-amber-200"></td></tr>
-                            <tr><td class="p-2 border border-amber-200">七世</td><td class="p-2 border border-amber-200">李友賢</td><td class="p-2 border border-amber-200">德配</td><td class="p-2 border border-amber-200">周氏</td><td class="p-2 border border-amber-200"></td></tr>
-                            <tr><td class="p-2 border border-amber-200">八世</td><td class="p-2 border border-amber-200">李傳芳</td><td class="p-2 border border-amber-200">芬芳</td><td class="p-2 border border-amber-200">吳氏</td><td class="p-2 border border-amber-200"></td></tr>
-                            <tr><td class="p-2 border border-amber-200">九世</td><td class="p-2 border border-amber-200">李家泰</td><td class="p-2 border border-amber-200">泰安</td><td class="p-2 border border-amber-200">鄭氏</td><td class="p-2 border border-amber-200"></td></tr>
-                            <tr><td class="p-2 border border-amber-200">十世</td><td class="p-2 border border-amber-200">李永昌</td><td class="p-2 border border-amber-200">盛世</td><td class="p-2 border border-amber-200">劉氏</td><td class="p-2 border border-amber-200">當代</td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">六世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李孝忠</td><td class="p-1.5 md:p-2 border border-current/20">信臣</td><td class="p-1.5 md:p-2 border border-current/20">趙氏</td><td class="p-1.5 md:p-2 border border-current/20"></td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">七世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李友賢</td><td class="p-1.5 md:p-2 border border-current/20">德配</td><td class="p-1.5 md:p-2 border border-current/20">周氏</td><td class="p-1.5 md:p-2 border border-current/20"></td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">八世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李傳芳</td><td class="p-1.5 md:p-2 border border-current/20">芬芳</td><td class="p-1.5 md:p-2 border border-current/20">吳氏</td><td class="p-1.5 md:p-2 border border-current/20"></td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">九世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李家泰</td><td class="p-1.5 md:p-2 border border-current/20">泰安</td><td class="p-1.5 md:p-2 border border-current/20">鄭氏</td><td class="p-1.5 md:p-2 border border-current/20"></td></tr>
+                            <tr class="ancestor-row"><td class="p-1.5 md:p-2 border border-current/20">十世</td><td class="p-1.5 md:p-2 border border-current/20 font-semibold">李永昌</td><td class="p-1.5 md:p-2 border border-current/20">盛世</td><td class="p-1.5 md:p-2 border border-current/20">劉氏</td><td class="p-1.5 md:p-2 border border-current/20">當代</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-2 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 14 頁</span>
                 </div>
             </div>
 
-            <!-- 第 15 頁：世系表 (圖文兼併 5) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 15 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="15">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">03. 家族分支與分流圖解</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">03. 家族分支與分流圖解</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         自十世以後，族人因生計陸續向外播遷，分出東房、西房及南房三大支脈，枝繁葉茂。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=900&q=80" alt="家族分支" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=900&q=80" alt="家族分支" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 15 頁</span>
                 </div>
             </div>
 
-            <!-- 第 16 頁：世系表 (純文字 6) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 16 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="16">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">04. 宗族名流與事蹟</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">04. 宗族名流與事蹟</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         本族枝葉散布海內外，各行各業均有傑出代表。有投身教育者、有立足商界者，皆秉持家風，奉獻社會。
                     </p>
-                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                    <p class="text-sm md:text-base leading-relaxed mt-3 md:mt-4">
                         家族之繁榮，賴祖宗積德，亦賴後代子孫自強不息，方能代有才人出。
                     </p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 16 頁</span>
                 </div>
             </div>
 
-            <!-- 第 17 頁：世系表 (圖文兼併 6) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 17 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="17">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">05. 現代宗親聯誼活動</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">05. 現代宗親聯誼活動</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         近年來定期舉辦全球宗親懇親大會，促進海內外青年交流，延續血脈溫情。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=900&q=80" alt="宗親聚會" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=900&q=80" alt="宗親聚會" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 17 頁</span>
                 </div>
             </div>
 
-            <!-- 第 18 頁：世系表 (圖文兼併 7) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 18 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="18">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">06. 家族文物與古蹟保存</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">06. 家族文物與古蹟保存</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         祖傳之古物、清代聖旨匾額及古契書等均妥善保存於宗祠文物館內，供後人瞻仰。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1582560475093-ba66accbc424?auto=format&fit=crop&w=900&q=80" alt="古文物" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1582560475093-ba66accbc424?auto=format&fit=crop&w=900&q=80" alt="古文物" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 18 頁</span>
                 </div>
             </div>
 
-            <!-- 第 19 頁：世系表 (圖文兼併 8) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 19 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="19">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">07. 祖墓重修與祭祀</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">07. 祖墓重修與祭祀</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         每年清明時節，各地子孫返鄉掃墓，行古禮祭拜先祖，展現慎終追遠之孝道。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=900&q=80" alt="祭祀活動" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=900&q=80" alt="祭祀活動" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 19 頁</span>
                 </div>
             </div>
 
-            <!-- 第 20 頁：世系表 (圖文兼併 9) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 20 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="20">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">08. 結語與展望未來</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">08. 結語與展望未來</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         族譜之編修，功在當代，利在千秋。期盼族人攜手同心，繼往開來，共創家族更輝煌之未來。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="未來展望" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="未來展望" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 20 頁</span>
                 </div>
             </div>
 
-            <!-- 第 21 頁：世系表 (圖文兼併 10) -->
-            <div class="page flex flex-col justify-between">
+            <!-- 第 21 頁 -->
+            <div class="page flex flex-col justify-between" data-page-num="21">
                 <div>
-                    <h3 class="text-2xl font-bold text-amber-900 mb-3">09. 編委会合影與誌謝</h3>
-                    <p class="text-stone-700 text-base leading-relaxed">
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 md:mb-3">09. 編委会合影與誌謝</h3>
+                    <p class="text-sm md:text-base leading-relaxed">
                         本譜順利告成，感謝各界宗親慷慨解囊與全力支持。特留此頁以誌紀念。
                     </p>
                 </div>
-                <div class="my-3">
-                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80" alt="委員會合影" class="rounded shadow w-full h-56 object-cover">
+                <div class="my-2 md:my-3">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80" alt="委員會合影" class="rounded shadow w-full h-44 md:h-56 object-cover">
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-2 md:pt-3 border-t border-current/20">
                     <span>世系表篇章</span>
                     <span>第 21 頁</span>
                 </div>
             </div>
 
             <!-- 第 22 頁：封底 -->
-            <div class="page flex flex-col justify-between">
-                <div class="flex flex-col items-center justify-center text-center flex-grow">
-                    <h2 class="text-4xl font-bold mb-4 text-amber-900 tracking-widest">隴西李氏族譜</h2>
-                    <p class="text-base text-stone-600">世代永昌 ‧ 版權所有</p>
-                    <p class="text-xs text-stone-400 mt-4">西元 2026 年 續修</p>
+            <div class="page page-cover flex flex-col justify-between" data-page-num="22">
+                <div class="flex flex-col items-center justify-center text-center flex-grow p-4">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 tracking-widest drop-shadow">隴西李氏族譜</h2>
+                    <p class="text-sm md:text-base opacity-90">世代永昌 ‧ 版權所有</p>
+                    <p class="text-xs opacity-70 mt-4">西元 2026 年 續修</p>
                 </div>
-                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                <div class="flex justify-between items-center text-xs md:text-sm opacity-80 pt-3 border-t border-current/30">
                     <span>全書完</span>
                     <span>第 22 頁</span>
                 </div>
             </div>
         </div>
 
-        <!-- 右側上下控制按鈕與頁碼狀態 -->
-        <div class="flex flex-col gap-3">
-            <button id="prevBtn" class="flex items-center justify-center w-12 h-12 bg-amber-800 text-amber-100 rounded-full shadow-md hover:bg-amber-900 transition duration-200 focus:outline-none" title="上一頁">
+        <!-- 右側/下方控制按鈕與頁碼狀態 -->
+        <div class="flex lg:flex-col gap-3 items-center justify-center">
+            <button id="prevBtn" class="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-blue-900 text-blue-100 rounded-full shadow-md hover:bg-blue-950 transition duration-200 focus:outline-none cursor-pointer" title="上一頁">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                 </svg>
             </button>
-            <div id="pageIndicator" class="text-center text-xs font-semibold text-amber-200 bg-amber-900/80 backdrop-blur px-2 py-2 rounded-lg shadow-sm">
+            <div id="pageIndicator" class="text-center text-xs font-semibold text-blue-200 bg-slate-900/90 backdrop-blur px-3 py-2 rounded-lg shadow-sm border border-blue-800/50">
                 1 / 22
             </div>
-            <button id="nextBtn" class="flex items-center justify-center w-12 h-12 bg-amber-800 text-amber-100 rounded-full shadow-md hover:bg-amber-900 transition duration-200 focus:outline-none" title="下一頁">
+            <button id="nextBtn" class="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-blue-900 text-blue-100 rounded-full shadow-md hover:bg-blue-950 transition duration-200 focus:outline-none cursor-pointer" title="下一頁">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -457,23 +586,148 @@
         </div>
     </div>
 
+    <!-- 1. 搜尋結果跳出新視窗 (Modal) -->
+    <div id="searchModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-blue-700 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-blue-100">
+            <div class="flex justify-between items-center px-6 py-4 bg-slate-950 border-b border-blue-800/60">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <span>🔍 全書搜尋結果：<span id="searchKeywordDisplay" class="text-blue-400"></span></span>
+                </h3>
+                <button id="closeModalBtn" class="text-slate-400 hover:text-white text-xl font-bold px-2 py-1 rounded-lg transition">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div id="noResults" class="text-center py-12 text-slate-400 hidden">
+                    找不到符合條件的內容。
+                </div>
+                <table id="resultsTable" class="w-full text-left border-collapse text-xs md:text-sm hidden">
+                    <thead>
+                        <tr class="bg-blue-950 text-blue-200 border-b border-blue-800">
+                            <th class="p-3 w-28 text-center">操作</th>
+                            <th class="p-3 w-20 text-center">頁碼</th>
+                            <th class="p-3">符合內容摘要</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody" class="divide-y divide-slate-800"></tbody>
+                </table>
+            </div>
+            <div class="px-6 py-3 bg-slate-950 border-t border-blue-800/60 flex flex-wrap justify-between items-center gap-2">
+                <div id="paginationContainer" class="flex items-center gap-2 hidden">
+                    <button id="prevPageBtn" class="bg-slate-800 hover:bg-blue-900 text-blue-200 px-3 py-1.5 rounded-lg text-xs transition">上一頁</button>
+                    <span id="pageInfoDisplay" class="text-xs text-blue-300 font-medium">第 1 / 1 頁</span>
+                    <button id="nextPageBtn" class="bg-slate-800 hover:bg-blue-900 text-blue-200 px-3 py-1.5 rounded-lg text-xs transition">下一頁</button>
+                </div>
+                <div></div>
+                <button id="closeModalFooterBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 px-4 py-2 rounded-lg text-sm transition">關閉視窗</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 縮圖目錄預覽 Modal -->
+    <div id="thumbModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-indigo-700 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-blue-100">
+            <div class="flex justify-between items-center px-6 py-4 bg-slate-950 border-b border-indigo-800/60">
+                <h3 class="text-lg font-bold flex items-center gap-2">🖼️ 全書縮圖目錄導覽</h3>
+                <button id="closeThumbModalBtn" class="text-slate-400 hover:text-white text-xl font-bold px-2 py-1 rounded-lg transition">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div id="thumbGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+            </div>
+            <div class="px-6 py-3 bg-slate-950 border-t border-indigo-800/60 flex justify-end">
+                <button id="closeThumbFooterBtn" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-100 px-4 py-2 rounded-lg text-sm transition">關閉目錄</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 書籤與筆記功能 Modal -->
+    <div id="notesModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-amber-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-amber-100">
+            <div class="flex justify-between items-center px-6 py-4 bg-slate-950 border-b border-amber-800/60">
+                <h3 class="text-lg font-bold flex items-center gap-2">🔖 個人書籤與讀書筆記</h3>
+                <button id="closeNotesModalBtn" class="text-slate-400 hover:text-white text-xl font-bold px-2 py-1 rounded-lg transition">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow space-y-4">
+                <div class="bg-slate-950/80 p-4 rounded-xl border border-amber-900/50">
+                    <h4 class="text-sm font-semibold mb-2 text-amber-300">新增目前頁面（第 <span id="currentBookmarkPage">1</span> 頁）書籤或筆記：</h4>
+                    <input type="text" id="noteTitleInput" placeholder="筆記標題 (例: 始祖源流心得)..." class="w-full bg-slate-900 text-amber-100 border border-amber-800 rounded-lg px-3 py-2 text-xs md:text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <textarea id="noteContentInput" placeholder="輸入您的心得或備註..." class="w-full bg-slate-900 text-amber-100 border border-amber-800 rounded-lg px-3 py-2 text-xs md:text-sm h-20 mb-3 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+                    <button id="saveNoteBtn" class="bg-amber-800 hover:bg-amber-700 text-amber-100 text-xs md:text-sm px-4 py-2 rounded-lg transition font-medium">儲存書籤與筆記</button>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold mb-2 text-amber-300">已儲存的紀錄：</h4>
+                    <div id="savedNotesList" class="space-y-2"></div>
+                </div>
+            </div>
+            <div class="px-6 py-3 bg-slate-950 border-t border-amber-800/60 flex justify-end">
+                <button id="closeNotesFooterBtn" class="bg-amber-900 hover:bg-amber-800 text-amber-100 px-4 py-2 rounded-lg text-sm transition">關閉視窗</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模擬翻書聲音效物件 -->
+    <script>
+        function playFlipSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const bufferSize = audioCtx.sampleRate * 0.12;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1200;
+                filter.Q.value = 1.5;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                noise.start();
+            } catch(e) {}
+        }
+    </script>
+
     <!-- 初始化與功能優化 JS -->
     <script>
         $(document).ready(function() {
             const $book = $('#book');
 
-            // 初始化 Turn.js：設定為橫式 A4 尺寸 (1123x794)，啟用單頁模式且「由下往上」翻頁
+            // 響應式動態尺寸計算
+            function getBookSize() {
+                if (window.innerWidth < 1080) {
+                    return { width: Math.min(window.innerWidth - 32, 460), height: 680 };
+                }
+                return { width: 1024, height: 594 };
+            }
+
+            const initialSize = getBookSize();
+
+            // 初始化 Turn.js
             $book.turn({
-                width: 1023,
-                height: 694,
+                width: initialSize.width,
+                height: initialSize.height,
                 autoCenter: true,
                 display: 'single', 
                 gradients: true,     
                 elevation: 120,
-                // 透過調整或覆寫方向讓其呈現垂直翻頁效果（Turn.js 預設為水平翻頁，此處設定單頁與垂直配置）
                 when: {
                     turned: function(e, page) {
                         $('#pageIndicator').text(page + ' / ' + $book.turn('pages'));
+                        $('#tocSelect').val(page);
+                        $('#goToPageInput').val(page);
+                        $('#currentBookmarkPage').text(page);
+                        playFlipSound();
                     }
                 }
             });
@@ -493,16 +747,312 @@
                 $book.turn('next');
             });
 
-            // 支援鍵盤上下方向鍵控制翻頁（配合由下往上之需求）
+            // 支援鍵盤左右方向鍵控制翻頁
             $(document).keydown(function(e) {
-                if (e.keyCode == 38 || e.keyCode == 37) { // 上方向鍵或左方向鍵
+                if ($(e.target).is('input, textarea')) return;
+
+                if (e.keyCode == 38 || e.keyCode == 37) { 
                     $book.turn('previous');
-                } else if (e.keyCode == 40 || e.keyCode == 39) { // 下方向鍵或右方向鍵
+                } else if (e.keyCode == 40 || e.keyCode == 39) { 
                     $book.turn('next');
                 }
             });
+
+            // 導航目錄下拉選單跳轉
+            $('#tocSelect').change(function() {
+                const targetPage = parseInt($(this).val());
+                if (targetPage) {
+                    $book.turn('page', targetPage);
+                }
+            });
+
+            // 頁面直接跳轉輸入框
+            function handleGoToPage() {
+                const pageNum = parseInt($('#goToPageInput').val());
+                const totalPages = $book.turn('pages');
+                if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+                    alert(`請輸入有效的頁碼（1 ~ ${totalPages}）！`);
+                    return;
+                }
+                $book.turn('page', pageNum);
+            }
+            $('#goToPageBtn').click(handleGoToPage);
+            $('#goToPageInput').keypress(function(e) {
+                if (e.which === 13) handleGoToPage();
+            });
+
+            // 縮圖目錄預覽
+            function buildThumbnails() {
+                const $grid = $('#thumbGrid');
+                $grid.empty();
+                const totalPages = $book.turn('pages');
+
+                for (let i = 1; i <= totalPages; i++) {
+                    let pageTitle = `第 ${i} 頁`;
+                    if (i === 1) pageTitle = '總序封面';
+                    else if (i === 2) pageTitle = '溯源血脈';
+                    else if (i === 7) pageTitle = '續修序';
+                    else if (i === 11) pageTitle = '凡例';
+                    else if (i === 13 || i === 14) pageTitle = '世系表';
+                    else if (i === 22) pageTitle = '全書封底';
+
+                    const thumbCard = `
+                        <div class="thumb-card bg-slate-950 border border-indigo-900/60 rounded-xl p-2.5 flex flex-col items-center justify-between hover:border-indigo-400 cursor-pointer transition group shadow" data-page="${i}">
+                            <div class="w-full h-24 bg-slate-900 rounded flex flex-col items-center justify-center text-center p-1 border border-indigo-950 group-hover:bg-indigo-950/40 transition">
+                                <span class="text-indigo-300 font-bold text-xs">P.${i}</span>
+                                <span class="text-[10px] text-slate-400 mt-1 truncate w-full px-1">${pageTitle}</span>
+                            </div>
+                            <span class="text-xs text-indigo-200 mt-2 font-medium group-hover:underline">跳至第 ${i} 頁</span>
+                        </div>
+                    `;
+                    $grid.append(thumbCard);
+                }
+            }
+
+            $('#openThumbModalBtn').click(function() {
+                buildThumbnails();
+                $('#thumbModal').removeClass('hidden');
+            });
+            $('#closeThumbModalBtn, #closeThumbFooterBtn').click(function() {
+                $('#thumbModal').addClass('hidden');
+            });
+            $('#thumbModal').click(function(e) {
+                if ($(e.target).is('#thumbModal')) $('#thumbModal').addClass('hidden');
+            });
+            $(document).on('click', '.thumb-card', function() {
+                const targetPage = parseInt($(this).attr('data-page'));
+                if (targetPage) {
+                    $book.turn('page', targetPage);
+                    $('#thumbModal').addClass('hidden');
+                }
+            });
+
+            // 書籤與筆記功能
+            function loadSavedNotes() {
+                const notes = JSON.parse(localStorage.getItem('li_genealogy_notes')) || [];
+                const $list = $('#savedNotesList');
+                $list.empty();
+
+                if (notes.length === 0) {
+                    $list.html('<p class="text-xs text-slate-400 italic py-2">目前尚無儲存的書籤或筆記。</p>');
+                    return;
+                }
+
+                notes.forEach((item, index) => {
+                    const noteItem = `
+                        <div class="bg-slate-950 p-3 rounded-lg border border-amber-900/40 flex flex-col gap-1">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-amber-200 text-xs md:text-sm">📌 第 ${item.page} 頁：${item.title}</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="jump-from-note bg-amber-900 hover:bg-amber-800 text-amber-100 text-[11px] px-2.5 py-1 rounded transition" data-page="${item.page}">跳轉</button>
+                                    <button class="delete-note text-slate-400 hover:text-red-400 text-xs px-1" data-index="${index}">&times;</button>
+                                </div>
+                            </div>
+                            <p class="text-slate-300 text-xs whitespace-pre-wrap">${item.content}</p>
+                            <span class="text-[10px] text-slate-500">${item.date}</span>
+                        </div>
+                    `;
+                    $list.append(noteItem);
+                });
+            }
+
+            $('#openNotesModalBtn').click(function() {
+                const currentPage = $book.turn('page');
+                $('#currentBookmarkPage').text(currentPage);
+                loadSavedNotes();
+                $('#notesModal').removeClass('hidden');
+            });
+            $('#closeNotesModalBtn, #closeNotesFooterBtn').click(function() {
+                $('#notesModal').addClass('hidden');
+            });
+            $('#notesModal').click(function(e) {
+                if ($(e.target).is('#notesModal')) $('#notesModal').addClass('hidden');
+            });
+
+            $('#saveNoteBtn').click(function() {
+                const currentPage = $book.turn('page');
+                const title = $('#noteTitleInput').val().trim() || `第 ${currentPage} 頁筆記`;
+                const content = $('#noteContentInput').val().trim();
+                
+                if (!content) {
+                    alert('請輸入筆記內容！');
+                    return;
+                }
+
+                const now = new Date().toLocaleString();
+                const notes = JSON.parse(localStorage.getItem('li_genealogy_notes')) || [];
+                notes.unshift({ page: currentPage, title, content, date: now });
+                localStorage.setItem('li_genealogy_notes', JSON.stringify(notes));
+
+                $('#noteTitleInput').val('');
+                $('#noteContentInput').val('');
+                loadSavedNotes();
+                alert('書籤與筆記儲存成功！');
+            });
+
+            $(document).on('click', '.jump-from-note', function() {
+                const targetPage = parseInt($(this).attr('data-page'));
+                if (targetPage) {
+                    $book.turn('page', targetPage);
+                    $('#notesModal').addClass('hidden');
+                }
+            });
+
+            $(document).on('click', '.delete-note', function() {
+                const index = parseInt($(this).attr('data-index'));
+                const notes = JSON.parse(localStorage.getItem('li_genealogy_notes')) || [];
+                notes.splice(index, 1);
+                localStorage.setItem('li_genealogy_notes', JSON.stringify(notes));
+                loadSavedNotes();
+            });
+
+            // 暗黑/護眼模式切換
+            let isSepia = false;
+            $('#toggleThemeBtn').click(function() {
+                isSepia = !isSepia;
+                if (isSepia) {
+                    $('body').addClass('sepia-mode');
+                    $(this).html('<span>🌙 深色模式</span>');
+                } else {
+                    $('body').removeClass('sepia-mode');
+                    $(this).html('<span>💡 護眼模式</span>');
+                }
+            });
+
+            // 全域搜尋功能
+            let allSearchResults = [];
+            let currentSearchPage = 1;
+            const itemsPerPage = 5;
+
+            function handleGlobalSearch() {
+                const keyword = $('#searchInput').val().trim();
+                if (!keyword) {
+                    alert('請輸入要搜尋的文字或關鍵字！');
+                    return;
+                }
+
+                $('#searchKeywordDisplay').text(`"${keyword}"`);
+                allSearchResults = [];
+
+                $('.page').each(function() {
+                    const pageNum = parseInt($(this).attr('data-page-num')) || $(this).index() + 1;
+                    const pageText = $(this).text();
+
+                    if (pageText.includes(keyword)) {
+                        const cleanText = pageText.replace(/\s+/g, ' ').trim();
+                        const idx = cleanText.indexOf(keyword);
+                        let start = Math.max(0, idx - 25);
+                        let end = Math.min(cleanText.length, idx + keyword.length + 25);
+                        let snippet = cleanText.substring(start, end);
+                        if (start > 0) snippet = '...' + snippet;
+                        if (end < cleanText.length) snippet = snippet + '...';
+
+                        const highlightedSnippet = snippet.replace(new RegExp(keyword, 'g'), `<span class="bg-blue-500 text-slate-950 font-bold px-1 rounded">${keyword}</span>`);
+
+                        allSearchResults.push({
+                            pageNum: pageNum,
+                            snippet: highlightedSnippet
+                        });
+                    }
+                });
+
+                currentSearchPage = 1;
+                renderSearchResultsPage();
+                $('#searchModal').removeClass('hidden');
+            }
+
+            function renderSearchResultsPage() {
+                const $tbody = $('#resultsTableBody');
+                $tbody.empty();
+
+                if (allSearchResults.length === 0) {
+                    $('#resultsTable').addClass('hidden');
+                    $('#paginationContainer').addClass('hidden');
+                    $('#noResults').removeClass('hidden');
+                    return;
+                }
+
+                $('#noResults').addClass('hidden');
+                $('#resultsTable').removeClass('hidden');
+
+                const totalPages = Math.ceil(allSearchResults.length / itemsPerPage);
+                if (currentSearchPage > totalPages) currentSearchPage = totalPages;
+                if (currentSearchPage < 1) currentSearchPage = 1;
+
+                const startIdx = (currentSearchPage - 1) * itemsPerPage;
+                const endIdx = startIdx + itemsPerPage;
+                const pageItems = allSearchResults.slice(startIdx, endIdx);
+
+                pageItems.forEach(item => {
+                    const rowHtml = `
+                        <tr class="hover:bg-slate-800/60 transition">
+                            <td class="p-3 text-center">
+                                <button class="jump-to-page bg-blue-700 hover:bg-blue-600 text-blue-100 text-xs px-3 py-1.5 rounded shadow transition font-medium" data-page="${item.pageNum}">
+                                    跳至此頁
+                                </button>
+                            </td>
+                            <td class="p-3 text-center font-semibold text-blue-300">第 ${item.pageNum} 頁</td>
+                            <td class="p-3 text-slate-300">${item.snippet}</td>
+                        </tr>
+                    `;
+                    $tbody.append(rowHtml);
+                });
+
+                if (totalPages > 1) {
+                    $('#paginationContainer').removeClass('hidden');
+                    $('#pageInfoDisplay').text(`第 ${currentSearchPage} / ${totalPages} 頁 (共 ${allSearchResults.length} 筆)`);
+                    $('#prevPageBtn').prop('disabled', currentSearchPage === 1);
+                    $('#nextPageBtn',).prop('disabled', currentSearchPage === totalPages);
+                } else {
+                    $('#paginationContainer').addClass('hidden');
+                }
+            }
+
+            $('#prevPageBtn').click(function() {
+                if (currentSearchPage > 1) {
+                    currentSearchPage--;
+                    renderSearchResultsPage();
+                }
+            });
+
+            $('#nextPageBtn').click(function() {
+                const totalPages = Math.ceil(allSearchResults.length / itemsPerPage);
+                if (currentSearchPage < totalPages) {
+                    currentSearchPage++;
+                    renderSearchResultsPage();
+                }
+            });
+
+            $(document).on('click', '.jump-to-page', function() {
+                const targetPage = parseInt($(this).attr('data-page'));
+                if (targetPage) {
+                    $book.turn('page', targetPage);
+                    $('#searchModal').addClass('hidden');
+                }
+            });
+
+            $('#closeModalBtn, #closeModalFooterBtn').click(function() {
+                $('#searchModal').addClass('hidden');
+            });
+            $('#searchModal').click(function(e) {
+                if ($(e.target).is('#searchModal')) $('#searchModal').addClass('hidden');
+            });
+
+            $('#searchBtn').click(handleGlobalSearch);
+            $('#searchInput').keypress(function(e) {
+                if (e.which === 13) handleGlobalSearch();
+            });
+
+            // 螢幕大小改變時動態調整 Book 尺寸
+            let resizeTimer;
+            $(window).resize(function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    const newSize = getBookSize();
+                    $book.turn('size', newSize.width, newSize.height);
+                }, 200);
+            });
         });
     </script>
-
 </body>
 </html>

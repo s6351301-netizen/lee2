@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>李氏家族數位族譜</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- 引入 Turn.js 翻頁特效 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <style>
+        body {
+            background-color: #1e293b;
+            font-family: "Noto Serif TC", "Songti TC", serif;
+            overflow: hidden;
+        }
+        /* 設定單頁尺寸 */
+        #book {
+            width: 1024px;
+            height: 594px;
+        }
+        #book .page {
+            background-color: #fdfbf7;
+            color: #2c2c2c;
+            padding: 10px;
+            box-shadow: inset 0 0 40px rgba(139, 69, 19, 0.1);
+            border: 1px solid #e2d9c5;
+        }
+        /* 直式文字樣式：直式書寫 */
+        .vertical-title {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 0.2em;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- 左側直式固定標題與副標題：與電子書左側保持 50px 間距 -->
+    <div class="fixed top-1/2 -translate-y-1/2 flex flex-col items-start z-20 pointer-events-none select-none" style="right: calc(50% + 512px + 50px);">
+        <h1 class="text-xl font-bold text-amber-100 vertical-title drop-shadow">
+            隴西李氏家族數位族譜<br>典雅傳承 ‧ 昭穆有序
+        </h1>
+    </div>
+
+    <!-- 主體區塊：電子書與右側控制列並排 -->
+    <div class="flex items-center gap-6">
+        <!-- 電子書外框 -->
+        <div id="book">
+            <!-- 第 1 頁：封面 -->
+            <div class="page flex flex-col justify-between">
+                <div class="flex flex-col items-center justify-center text-center flex-grow">
+                    <span class="text-sm tracking-widest text-amber-800 mb-3 font-semibold">【 第一大項：序 】</span>
+                    <h2 class="text-4xl font-bold mb-4 tracking-widest text-amber-900">李氏族譜・總序</h2>
+                    <p class="text-stone-600 text-base max-w-2xl leading-relaxed">
+                        國之有史，地之有志，家之有譜。譜牒所以昭穆代遠、維繫宗親。吾族自遠祖源遠流長，瓜瓞綿綿，世代簪纓，耕讀傳家。
+                    </p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>李氏族譜卷一</span>
+                    <span>第 1 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 2 頁：序言內文 (圖文兼併 1) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">01. 溯源與血脈延續</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        水有源而木有本，人有祖而宗有譜。本族世代繁衍，分支遍及海內外。追根溯源，皆為同宗共祖。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80" alt="古籍族譜" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>序言篇章</span>
+                    <span>第 2 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 3 頁：序言內文 (圖文兼併 2) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">02. 祖先發祥聖地</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        先祖肇基之所，山川靈秀，鐘靈毓秀。歷代先賢於此耕耘播遷，奠定家族百年基業。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80" alt="祖居山川" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>序言篇章</span>
+                    <span>第 3 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 4 頁：序言內文 (純文字 1) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">03. 宗族精神與祖訓</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        忠孝立身，仁義處世。祖訓言：「讀書好營生好，簡樸最真；忠信存心，和平待物。」此乃子孫立世之本。
+                    </p>
+                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                        歷代先賢克勤克儉，勉勵後進不忘根本，尊老愛幼，敦親睦鄰，為本族世代相傳之美德。
+                    </p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>序言篇章</span>
+                    <span>第 4 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 5 頁：序言內文 (圖文兼併 3) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">04. 書香門第與文風</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        家族崇尚耕讀，歷朝歷代多有文人墨客與學子登科及第，為地方文教之發展做出卓越貢獻。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=900&q=80" alt="古籍書房" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>序言篇章</span>
+                    <span>第 5 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 6 頁：序言內文 (純文字 2) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">05. 宗祠興建與凝聚</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        宗祠乃凝聚族人之核心，春秋二祭，慎終追遠。祠堂雕樑畫棟，昭示祖宗功德與家族榮光。
+                    </p>
+                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                        每逢祭祖大典，海內外宗親齊聚一堂，頂禮膜拜，共叙血脈深情，體現強大之宗族向心力。
+                    </p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>序言篇章</span>
+                    <span>第 6 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 7 頁：第二大項：續修序 -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <span class="text-sm tracking-widest text-amber-800 mb-3 font-semibold block">【 第二大項：續修序 】</span>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">01. 歷代續修源流</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        盛世修志，家之有譜亦然。歲月更迭，若不定期續修，恐生支派失考之虞。本族自初修以來，歷經多次續修。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=900&q=80" alt="檔案修復" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>續修序篇章</span>
+                    <span>第 7 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 8 頁：續修序內文 (純文字 3) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">02. 本次續修緣起</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        自上次修譜至今已逾三十載，新添丁口眾多，遷徙頻繁。為免世代湮沒，經族人倡議，特成立續修族譜委員會。
+                    </p>
+                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                        委員會廣搜資料，登門走訪各房各派，歷時數載，終於告成，可謂盛事。
+                    </p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>續修序篇章</span>
+                    <span>第 8 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 9 頁：續修序內文 (圖文兼併 4) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">03. 走訪與資料蒐集</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        修譜小組足跡遍及大江南北，核對碑文、翻閱舊契，力求世系清晰、人名無誤。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&w=900&q=80" alt="田野調查" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>續修序篇章</span>
+                    <span>第 9 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 10 頁：續修序內文 (純文字 4) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">04. 數位化與新編排</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        為適應現代化發展，本次續修特別採用數位網頁版與紙本並行，便於全球宗親隨時查閱與聯繫。
+                    </p>
+                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                        此舉突破地域限制，讓年輕一代更能便捷地了解家族歷史與輩分排行。
+                    </p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>續修序篇章</span>
+                    <span>第 10 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 11 頁：第三大項：凡例 -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <span class="text-sm tracking-widest text-amber-800 mb-3 font-semibold block">【 第三大項：凡例 】</span>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">01. 編修體例說明</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        一、本譜採用歐式與蘇式結合之體例，世系井然，尊卑有序。
+                        <br>二、人名記載以本名為主，字號、生卒年及配偶均詳載於後。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80" alt="規章圖表" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>凡例篇章</span>
+                    <span>第 11 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 12 頁：凡例內文 (純文字 5) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">02. 輩分字輩對照</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        三、家族字輩排序：「克、家、振、業、孝、友、傳、家、永、昌」。取名依此序，以免亂倫序。
+                    </p>
+                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                        四、女性族員記載：本次續修亦將女性宗親及其夫婿、子女一併登載，體現平等人權與完整血脈。
+                    </p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>凡例篇章</span>
+                    <span>第 12 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 13 頁：第四大項：世系表 (表格 1) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <span class="text-sm tracking-widest text-amber-800 mb-2 font-semibold block">【 第四大項：世系表 】</span>
+                    <h3 class="text-xl font-bold text-amber-900 mb-2">01. 一至五世世系表</h3>
+                    <table class="w-full text-left border-collapse text-sm mt-2">
+                        <thead>
+                            <tr class="bg-amber-100 text-amber-900">
+                                <th class="p-2 border border-amber-300">世代</th>
+                                <th class="p-2 border border-amber-300">姓名</th>
+                                <th class="p-2 border border-amber-300">字號</th>
+                                <th class="p-2 border border-amber-300">配偶</th>
+                                <th class="p-2 border border-amber-300">備註</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="p-2 border border-amber-200">一世</td><td class="p-2 border border-amber-200">李元鼎</td><td class="p-2 border border-amber-200">宗之</td><td class="p-2 border border-amber-200">王氏</td><td class="p-2 border border-amber-200">始祖</td></tr>
+                            <tr><td class="p-2 border border-amber-200">二世</td><td class="p-2 border border-amber-200">李克明</td><td class="p-2 border border-amber-200">顯甫</td><td class="p-2 border border-amber-200">張氏</td><td class="p-2 border border-amber-200">長子</td></tr>
+                            <tr><td class="p-2 border border-amber-200">三世</td><td class="p-2 border border-amber-200">李家邦</td><td class="p-2 border border-amber-200">國華</td><td class="p-2 border border-amber-200">陳氏</td><td class="p-2 border border-amber-200">進士</td></tr>
+                            <tr><td class="p-2 border border-amber-200">四世</td><td class="p-2 border border-amber-200">李振聲</td><td class="p-2 border border-amber-200">振遠</td><td class="p-2 border border-amber-200">林氏</td><td class="p-2 border border-amber-200">商賈</td></tr>
+                            <tr><td class="p-2 border border-amber-200">五世</td><td class="p-2 border border-amber-200">李業勤</td><td class="p-2 border border-amber-200">克勤</td><td class="p-2 border border-amber-200">黃氏</td><td class="p-2 border border-amber-200">鄉賢</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-2 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 13 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 14 頁：世系表 (表格 2) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-amber-900 mb-2">02. 六至十世世系表</h3>
+                    <table class="w-full text-left border-collapse text-sm mt-2">
+                        <thead>
+                            <tr class="bg-amber-100 text-amber-900">
+                                <th class="p-2 border border-amber-300">世代</th>
+                                <th class="p-2 border border-amber-300">姓名</th>
+                                <th class="p-2 border border-amber-300">字號</th>
+                                <th class="p-2 border border-amber-300">配偶</th>
+                                <th class="p-2 border border-amber-300">備註</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="p-2 border border-amber-200">六世</td><td class="p-2 border border-amber-200">李孝忠</td><td class="p-2 border border-amber-200">信臣</td><td class="p-2 border border-amber-200">趙氏</td><td class="p-2 border border-amber-200"></td></tr>
+                            <tr><td class="p-2 border border-amber-200">七世</td><td class="p-2 border border-amber-200">李友賢</td><td class="p-2 border border-amber-200">德配</td><td class="p-2 border border-amber-200">周氏</td><td class="p-2 border border-amber-200"></td></tr>
+                            <tr><td class="p-2 border border-amber-200">八世</td><td class="p-2 border border-amber-200">李傳芳</td><td class="p-2 border border-amber-200">芬芳</td><td class="p-2 border border-amber-200">吳氏</td><td class="p-2 border border-amber-200"></td></tr>
+                            <tr><td class="p-2 border border-amber-200">九世</td><td class="p-2 border border-amber-200">李家泰</td><td class="p-2 border border-amber-200">泰安</td><td class="p-2 border border-amber-200">鄭氏</td><td class="p-2 border border-amber-200"></td></tr>
+                            <tr><td class="p-2 border border-amber-200">十世</td><td class="p-2 border border-amber-200">李永昌</td><td class="p-2 border border-amber-200">盛世</td><td class="p-2 border border-amber-200">劉氏</td><td class="p-2 border border-amber-200">當代</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-2 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 14 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 15 頁：世系表 (圖文兼併 5) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">03. 家族分支與分流圖解</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        自十世以後，族人因生計陸續向外播遷，分出東房、西房及南房三大支脈，枝繁葉茂。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=900&q=80" alt="家族分支" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 15 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 16 頁：世系表 (純文字 6) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">04. 宗族名流與事蹟</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        本族枝葉散布海內外，各行各業均有傑出代表。有投身教育者、有立足商界者，皆秉持家風，奉獻社會。
+                    </p>
+                    <p class="text-stone-700 text-base leading-relaxed mt-4">
+                        家族之繁榮，賴祖宗積德，亦賴後代子孫自強不息，方能代有才人出。
+                    </p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 16 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 17 頁：世系表 (圖文兼併 6) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">05. 現代宗親聯誼活動</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        近年來定期舉辦全球宗親懇親大會，促進海內外青年交流，延續血脈溫情。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=900&q=80" alt="宗親聚會" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 17 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 18 頁：世系表 (圖文兼併 7) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">06. 家族文物與古蹟保存</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        祖傳之古物、清代聖旨匾額及古契書等均妥善保存於宗祠文物館內，供後人瞻仰。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1582560475093-ba66accbc424?auto=format&fit=crop&w=900&q=80" alt="古文物" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 18 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 19 頁：世系表 (圖文兼併 8) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">07. 祖墓重修與祭祀</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        每年清明時節，各地子孫返鄉掃墓，行古禮祭拜先祖，展現慎終追遠之孝道。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=900&q=80" alt="祭祀活動" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 19 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 20 頁：世系表 (圖文兼併 9) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">08. 結語與展望未來</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        族譜之編修，功在當代，利在千秋。期盼族人攜手同心，繼往開來，共創家族更輝煌之未來。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="未來展望" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 20 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 21 頁：世系表 (圖文兼併 10) -->
+            <div class="page flex flex-col justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-900 mb-3">09. 編委会合影與誌謝</h3>
+                    <p class="text-stone-700 text-base leading-relaxed">
+                        本譜順利告成，感謝各界宗親慷慨解囊與全力支持。特留此頁以誌紀念。
+                    </p>
+                </div>
+                <div class="my-3">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80" alt="委員會合影" class="rounded shadow w-full h-56 object-cover">
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>世系表篇章</span>
+                    <span>第 21 頁</span>
+                </div>
+            </div>
+
+            <!-- 第 22 頁：封底 -->
+            <div class="page flex flex-col justify-between">
+                <div class="flex flex-col items-center justify-center text-center flex-grow">
+                    <h2 class="text-4xl font-bold mb-4 text-amber-900 tracking-widest">隴西李氏族譜</h2>
+                    <p class="text-base text-stone-600">世代永昌 ‧ 版權所有</p>
+                    <p class="text-xs text-stone-400 mt-4">西元 2026 年 續修</p>
+                </div>
+                <div class="flex justify-between items-center text-sm text-stone-500 pt-3 border-t border-amber-200">
+                    <span>全書完</span>
+                    <span>第 22 頁</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側上下控制按鈕與頁碼狀態 -->
+        <div class="flex flex-col gap-3">
+            <button id="prevBtn" class="flex items-center justify-center w-12 h-12 bg-amber-800 text-amber-100 rounded-full shadow-md hover:bg-amber-900 transition duration-200 focus:outline-none" title="上一頁">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+            </button>
+            <div id="pageIndicator" class="text-center text-xs font-semibold text-amber-200 bg-amber-900/80 backdrop-blur px-2 py-2 rounded-lg shadow-sm">
+                1 / 22
+            </div>
+            <button id="nextBtn" class="flex items-center justify-center w-12 h-12 bg-amber-800 text-amber-100 rounded-full shadow-md hover:bg-amber-900 transition duration-200 focus:outline-none" title="下一頁">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 初始化與功能優化 JS -->
+    <script>
+        $(document).ready(function() {
+            const $book = $('#book');
+
+            // 初始化 Turn.js
+            $book.turn({
+                width: 1024,
+                height: 594,
+                autoCenter: true,
+                display: 'single', 
+                gradients: true,     
+                elevation: 120,
+                when: {
+                    turned: function(e, page) {
+                        $('#pageIndicator').text(page + ' / ' + $book.turn('pages'));
+                    }
+                }
+            });
+
+            // 初始化總頁數
+            $('#pageIndicator').text('1 / ' + $book.turn('pages'));
+
+            // 上一頁按鈕
+            $('#prevBtn').click(function(e) {
+                e.preventDefault();
+                $book.turn('previous');
+            });
+
+            // 下一頁按鈕
+            $('#nextBtn').click(function(e) {
+                e.preventDefault();
+                $book.turn('next');
+            });
+
+            // 支援鍵盤上下方向鍵控制翻頁
+            $(document).keydown(function(e) {
+                if (e.keyCode == 38 || e.keyCode == 37) { 
+                    $book.turn('previous');
+                } else if (e.keyCode == 40 || e.keyCode == 39) { 
+                    $book.turn('next');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
